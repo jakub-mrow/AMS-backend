@@ -1,0 +1,38 @@
+name: Deployment from Github to AWS
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  continuous-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout source code"
+        uses: actions/checkout@v2
+
+      - name: 'Create env file'
+        run: |
+          touch .env
+          echo APP_PORT=8080 >> .env
+          echo APP_CONTAINER_NAME="django" >> .env
+
+      - name: "Build and run container"
+        env:
+          APP_PORT: 8080
+          APP_CONTAINER_NAME: django
+        run: docker-compose up -d --build
+
+      - name: "Sleep for 30 seconds"
+        uses: jakejarvis/wait-action@master
+        with:
+          time: '30s'
+
+      - name: "Run tests"
+        run: docker-compose exec -T django pytest
+
+      - name: "Stop containers"
+        run: docker-compose down

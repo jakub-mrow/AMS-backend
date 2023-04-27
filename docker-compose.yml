@@ -1,0 +1,39 @@
+version: "3.3"
+
+services:
+  postgres:
+    restart: unless-stopped
+    image: postgres
+    container_name: postgres
+    volumes:
+      - "postgres:/var/lib/postgresql/data"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    expose:
+      - "5432"
+  django:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/drf.dockerfile
+    image: ams-backend:latest
+    env_file:
+      - ./.env
+    container_name: ${APP_CONTAINER_NAME}
+    hostname: ${APP_CONTAINER_NAME}
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "${APP_PORT}:8000"
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - postgres
+
+volumes:
+  postgres:
