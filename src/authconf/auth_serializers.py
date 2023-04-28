@@ -18,7 +18,6 @@ class TokenObtainSerializer(TokenObtainPairSerializer):
     
         if not user.is_staff:
             token.access_token.set_exp(lifetime=timedelta(minutes=15))
-            token.refresh_token.set_exp(lifetime=timedelta(days=7))
 
         token['username'] = user.username
 
