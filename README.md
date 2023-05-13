@@ -24,7 +24,7 @@ On every setup, database migration is required
 docker-compose exec django manage migrate
 ```
 
-If manage script does not work than
+If manage script does not work then
 
 ```
 docker-compose exec django python manage.py migrate
