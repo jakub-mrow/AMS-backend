@@ -8,6 +8,6 @@ requests==2.24.0
 django-cors-headers==3.13.0
 
 #celery
-celery[redis]==*
+celery[redis]
 importlib-metadata==4.12.0
 django-celery-results==2.5.0
