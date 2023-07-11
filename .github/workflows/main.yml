@@ -58,3 +58,12 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-django -f ./docker/django/Dockerfile ./docker/django
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-django
+
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-redis -f ./docker/redis/Dockerfile ./docker/redis
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-redis
+
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-postgres -f ./docker/postgres/Dockerfile ./docker/postgres
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-postgres
+
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-celery-worker -f ./docker/celery/Dockerfile ./docker/celery
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-celery-worker
