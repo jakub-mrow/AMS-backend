@@ -56,6 +56,5 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ams.registry.apps
         run: |
-          docker build -t ams-django:latest -f ./docker/django/Dockerfile ./docker/django
-          docker tag ams-django:latest $ECR_REGISTRY/ams-django:latest
-          docker push $ECR_REGISTRY/ams-django:latest
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-django -f ./docker/django/Dockerfile ./docker/django
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-django
