@@ -55,6 +55,6 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t ams-django:latest -f ./docker/django/Dockerfile .
+          docker build -t ams-django:latest -f ./docker/django/Dockerfile ./docker/django
           docker tag ams-django:latest $ECR_REGISTRY/ams-django:latest
           docker push $ECR_REGISTRY/ams-django:latest
