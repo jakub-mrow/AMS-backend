@@ -10,8 +10,6 @@ on:
 
 env:
   AWS_REGION: eu-central-1
-  ECR_REGISTRY: 944750375340.dkr.ecr.eu-central-1.amazonaws.com/ams.registry.apps
-  ECR_REPOSITORY: ams.registry.apps
 
 jobs:
   continuous-integration:
@@ -54,6 +52,9 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ams.registry.apps
         run: |
           docker build -t ams-django:latest -f ./docker/django/Dockerfile ./docker/django
           docker tag ams-django:latest $ECR_REGISTRY/ams-django:latest
