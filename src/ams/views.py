@@ -59,7 +59,7 @@ class AccountViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(balance=0)
         logging.info("Account created")
-        return Response(serializer.data)
+        return Response({"msg": "Account created"}, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
         return models.Account.objects.filter(user=self.request.user)
