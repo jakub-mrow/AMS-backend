@@ -6,6 +6,7 @@ from ams import views
 
 router = DefaultRouter(trailing_slash=False)
 router.register("tasks", views.TaskViewSet, "task")
+router.register("accounts", views.AccountViewSet, "account")
 
 urlpatterns = [
     re_path("", include(router.urls))

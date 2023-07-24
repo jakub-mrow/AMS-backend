@@ -1,5 +1,7 @@
-from rest_framework import serializers
+from _decimal import Decimal
 
+from rest_framework import serializers
+from rest_framework.fields import CurrentUserDefault
 from ams import models
 
 
@@ -8,4 +10,20 @@ class TaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Task
-        fields = ("id", "description", )
+        fields = ("id", "description",)
+
+
+class AccountCreateSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=CurrentUserDefault())
+
+    class Meta:
+        model = models.Account
+        fields = ('id', 'currency', 'user')
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    balance = serializers.DecimalField(max_digits=15, decimal_places=2, coerce_to_string=False)
+
+    class Meta:
+        model = models.Account
+        fields = ('id', 'currency', 'balance')
