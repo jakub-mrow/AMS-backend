@@ -22,7 +22,7 @@ class AccountCreateSerializer(serializers.ModelSerializer):
 
 
 class AccountSerializer(serializers.ModelSerializer):
-    balance = serializers.DecimalField(max_digits=15, decimal_places=2, coerce_to_string=False)
+    balance = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
 
     class Meta:
         model = models.Account
