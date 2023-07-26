@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     "authconf.apps.AuthconfConfig",
     "corsheaders",
     "django_celery_results",
+    "drf_yasg"
 ]
 
 MIDDLEWARE = [
