@@ -1,8 +1,6 @@
-from _decimal import Decimal
-
+from ams import models
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
-from ams import models
 
 
 class AccountCreateSerializer(serializers.ModelSerializer):

@@ -1,11 +1,10 @@
 import logging
 
 from ams import models, serializers
-
-from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import permission_classes, api_view
-from rest_framework.response import Response
+from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 from .permissions import IsObjectOwner
 
 logger = logging.getLogger(__name__)
