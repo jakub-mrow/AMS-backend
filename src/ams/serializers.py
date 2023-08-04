@@ -5,28 +5,20 @@ from rest_framework.fields import CurrentUserDefault
 from ams import models
 
 
-class TaskSerializer(serializers.ModelSerializer):
-    description = serializers.CharField(help_text="description")
-
-    class Meta:
-        model = models.Task
-        fields = ("id", "description",)
-
-
 class AccountCreateSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=CurrentUserDefault())
 
     class Meta:
         model = models.Account
-        fields = ('id', 'currency', 'user')
+        fields = ('id', 'name', 'user')
 
 
 class AccountSerializer(serializers.ModelSerializer):
-    balance = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
+    user_id = serializers.IntegerField(source='user.id')
 
     class Meta:
         model = models.Account
-        fields = ('id', 'currency', 'balance')
+        fields = ('id', 'name', 'user_id')
 
 
 class DepositSerializer(serializers.Serializer):
