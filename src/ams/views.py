@@ -150,3 +150,28 @@ class ExchangeViewSet(viewsets.ViewSet):
         serializer = serializers.ExchangeSerializer(qs, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class StockViewSet(viewsets.ViewSet):
+
+    def create(self, request):
+        try :
+            exchange = models.Exchange.objects.get(pk=request.data.get("exchange"))
+        except models.Exchange.DoesNotExist:
+            return Response({"error": "Exchange not found."}, status=404)
+
+        serializer = serializers.StockSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(exchange=exchange)
+        logging.info("Stock added")
+        return Response({"msg": "Stock added"}, status=status.HTTP_201_CREATED)
+
+    def list(self, request, exchange_id=None):
+        try:
+            stocks = models.Stock.objects.filter(exchange=exchange_id)
+        except models.Stock.DoesNotExist:
+            return Response({"error": "Stock not found."}, status=404)
+
+        serializer = serializers.StockSerializer(stocks, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -47,3 +47,8 @@ class ExchangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Exchange
         fields = ('id', 'name')
+
+class StockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Stock
+        fields = ( 'isin', 'name', 'exchange')
