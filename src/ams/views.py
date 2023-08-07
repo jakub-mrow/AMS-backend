@@ -7,6 +7,7 @@ from rest_framework.decorators import permission_classes, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsObjectOwner
+from .serializers import ExchangeSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -134,3 +135,18 @@ class TransactionViewSet(viewsets.ViewSet):
         serializer = serializers.TransactionSerializer(transactions, many=True)
 
         return Response(serializer.data)
+
+
+class ExchangeViewSet(viewsets.ViewSet):
+    def create(self, request):
+        serializer = ExchangeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        logging.info("Exchange added")
+        return Response({"msg": "Exchange added"}, status=status.HTTP_201_CREATED)
+
+    def list(self, request):
+        qs = models.Exchange.objects.all()
+        serializer = serializers.ExchangeSerializer(qs, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

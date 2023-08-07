@@ -41,3 +41,9 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Transaction
         fields = ('id', 'account', 'transaction_type', 'amount', 'date')
+
+
+class ExchangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Exchange
+        fields = ('id', 'name')

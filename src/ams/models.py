@@ -56,7 +56,6 @@ class StockTransaction(models.Model):
         return f"{self.transaction_type} of {self.quantity} for {self.price} for {self.account_id}"
 
 class Exchange(models.Model):
-    id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=128)
 
     def __str__(self):

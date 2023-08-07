@@ -10,6 +10,7 @@ router.register("accounts", views.AccountViewSet, "account")
 router.register(r'accounts/(?P<account_id>\d+)/deposit', views.DepositViewSet, "deposit")
 router.register(r'accounts/(?P<account_id>\d+)/withdrawal', views.WithdrawalViewSet, "withdrawal")
 router.register(r'accounts/(?P<account_id>\d+)/transactions', views.TransactionViewSet, "transaction")
+router.register("exchanges", views.ExchangeViewSet, "exchange")
 
 
 urlpatterns = [
