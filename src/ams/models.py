@@ -29,6 +29,11 @@ class Transaction(models.Model):
     def __str__(self):
         return f"{self.transaction_type} of {self.amount} for {self.account}"
 
+class Exchange(models.Model):
+    name = models.CharField(max_length=128)
+
+    def __str__(self):
+        return f"{self.name}"
 
 class StockTransaction(models.Model):
     BUY = 'buy'
@@ -38,22 +43,19 @@ class StockTransaction(models.Model):
         (SELL, 'Sell'),
     )
 
-    account_id = models.IntegerField()   # TODO: change to foreign key
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name= 'stock_transaction')
     isin = models.CharField(max_length=12)
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=13, decimal_places=2)
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPE_CHOICES)
-    exchange_id = models.IntegerField()
+    exchange = models.ForeignKey(Exchange, on_delete=models.CASCADE)
     currency = models.CharField(max_length=3)
+    date = models.DateTimeField()
 
     def __str__(self):
         return f"{self.transaction_type} of {self.quantity} for {self.price} for {self.account_id}"
 
-class Exchange(models.Model):
-    name = models.CharField(max_length=128)
 
-    def __str__(self):
-        return f"{self.name}"
 
 class Stock(models.Model):
     isin = models.CharField(max_length=12, primary_key=True)

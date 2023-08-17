@@ -100,6 +100,8 @@ class TransactionViewSet(viewsets.ViewSet):
 
 
 class ExchangeViewSet(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated,)
+
     def create(self, request):
         serializer = ExchangeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -115,6 +117,7 @@ class ExchangeViewSet(viewsets.ViewSet):
 
 
 class StockViewSet(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated,)
 
     def create(self, request):
         try :
@@ -137,3 +140,33 @@ class StockViewSet(viewsets.ViewSet):
         serializer = serializers.StockSerializer(stocks, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class StockTransactionViewSet(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated,)
+
+    def create(self, request, account_id):
+        try:
+            models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        serializer = serializers.StockTransactionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            models.Stock.objects.get(pk=serializer.validated_data['isin'])
+        except models.Stock.DoesNotExist:
+            return Response({"error": "Stock not found."}, status=404)
+
+        # try :
+        #     models.Exchange.objects.filter(id=serializer.validated_data['exchange'])
+        # except models.Exchange.DoesNotExist:
+        #     return Response({"error": "Exchange not found."}, status=404)
+
+
+
+
+        serializer.save()
+        logging.info("Stock Transaction added")
+        return Response({"msg": "Stock Transaction added"}, status=status.HTTP_201_CREATED)

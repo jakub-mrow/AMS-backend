@@ -42,3 +42,8 @@ class StockSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Stock
         fields = ( 'isin', 'name', 'exchange')
+
+class StockTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.StockTransaction
+        fields = ('isin', 'quantity', 'price', 'transaction_type', 'exchange', 'currency', 'date')
