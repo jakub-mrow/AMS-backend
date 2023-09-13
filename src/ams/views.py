@@ -1,7 +1,9 @@
 import logging
 
 from ams import models, serializers
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, generics
+from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -16,9 +18,6 @@ class AccountViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, IsObjectOwner)
 
     def create(self, request, *args, **kwargs):
-        """
-        Create a new account.
-        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -34,54 +33,47 @@ class AccountViewSet(viewsets.ModelViewSet):
         return serializers.AccountSerializer
 
 
-class DepositViewSet(viewsets.ViewSet):
-    permission_classes = (IsAuthenticated, )
-
-    def create(self, request, account_id):
-        try:
-            account = models.Account.objects.get(pk=account_id, user=request.user)
-        except models.Account.DoesNotExist:
-            return Response({"error": "Account not found."}, status=404)
-
-        serializer = serializers.DepositSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        amount = serializer.validated_data['amount']
-        account.balance += amount
-        account.save()
-
-        models.Transaction.objects.create(account=account, transaction_type=models.Transaction.DEPOSIT, amount=amount)
-
-        return Response({"message": "Deposit transaction created successfully."}, status=201)
-
-
-class WithdrawalViewSet(viewsets.ViewSet):
-    permission_classes = (IsAuthenticated, )
-
-    def create(self, request, account_id):
-        try:
-            account = models.Account.objects.get(pk=account_id, user=request.user)
-        except models.Account.DoesNotExist:
-            return Response({"error": "Account not found."}, status=404)
-
-        serializer = serializers.WithdrawalSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        amount = serializer.validated_data['amount']
-        if account.balance < amount:
-            return Response({"error": "Insufficient balance."}, status=400)
-
-        account.balance -= amount
-        account.save()
-
-        models.Transaction.objects.create(account=account, transaction_type=models.Transaction.WITHDRAWAL,
-                                          amount=amount)
-
-        return Response({"message": "Withdrawal transaction created successfully."}, status=201)
-
-
 class TransactionViewSet(viewsets.ViewSet):
-    permission_classes = (IsAuthenticated, )
+    serializer_class = serializers.TransactionSerializer
+    permission_classes = (IsAuthenticated, IsObjectOwner)
+
+    def create(self, request, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=self.request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found or does not belong to the user"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        serializer = serializers.TransactionCreateSerializer(data=request.data, context={'account_id': account.id})
+        serializer.is_valid(raise_exception=True)
+        transaction = serializer.save()
+        try:
+            account_balance = models.AccountBalance.objects.get(
+                account_id=transaction.account_id,
+                currency=transaction.currency
+            )
+
+        except models.AccountBalance.DoesNotExist:
+            new_account_balance = models.AccountBalance(
+                account_id=transaction.account_id,
+                currency=transaction.currency,
+                amount=0.00
+            )
+            new_account_balance.save()
+
+            account_balance = models.AccountBalance.objects.get(
+                account_id=transaction.account_id,
+                currency=transaction.currency
+            )
+
+        if transaction.type == 'deposit':
+            account_balance.amount += transaction.amount
+        elif transaction.type == 'withdrawal':
+            account_balance.amount -= transaction.amount
+
+        account_balance.save()
+
+        return Response({"msg": "Transaction created."}, status=status.HTTP_201_CREATED)
 
     def list(self, request, account_id):
         try:
@@ -97,6 +89,28 @@ class TransactionViewSet(viewsets.ViewSet):
         serializer = serializers.TransactionSerializer(transactions, many=True)
 
         return Response(serializer.data)
+
+    def destroy(self, request, account_id, pk=None):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        transaction = get_object_or_404(models.Transaction, pk=pk, account=account)
+        account_balance = models.AccountBalance.objects.get(
+            account_id=transaction.account_id,
+            currency=transaction.currency
+        )
+
+        if transaction.type == "deposit":
+            account_balance.amount -= transaction.amount
+        elif transaction.type == "withdrawal":
+            account_balance.amount += transaction.amount
+
+        account_balance.save()
+        transaction.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ExchangeViewSet(viewsets.ViewSet):
