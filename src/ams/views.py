@@ -70,6 +70,10 @@ class TransactionViewSet(viewsets.ViewSet):
         elif transaction.type == 'withdrawal':
             account_balance.amount -= transaction.amount
 
+        if transaction.date > account.last_transaction_date:
+            account.last_transaction_date = transaction.date
+
+        account.save()
         account_balance.save()
 
         return Response({"msg": "Transaction created."}, status=status.HTTP_201_CREATED)
