@@ -1,8 +1,7 @@
 import logging
 
 from ams import models, serializers
-from rest_framework import status, viewsets, generics
-from rest_framework.decorators import action
+from rest_framework import status, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -69,7 +68,7 @@ class TransactionViewSet(viewsets.ViewSet):
             account_balance.amount += transaction.amount
         elif transaction.type == 'withdrawal':
             account_balance.amount -= transaction.amount
-        if account.last_transaction_date and transaction.date > account.last_transaction_date:
+        if account.last_transaction_date:
             if transaction.date > account.last_transaction_date:
                 account.last_transaction_date = transaction.date
         else:
