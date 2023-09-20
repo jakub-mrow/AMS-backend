@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from decimal import Decimal
-from ...models import Account, AccountHistory, AccountHistoryBalance, Transaction, AccountBalance
+
+from ...models import Account, AccountHistory, AccountHistoryBalance, AccountBalance
 
 
 class Command(BaseCommand):

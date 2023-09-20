@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 class Account(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    last_transaction_date = models.DateTimeField()
+    last_transaction_date = models.DateTimeField(blank=True, null=True)
     last_save_date = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
