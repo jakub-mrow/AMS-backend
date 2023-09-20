@@ -69,8 +69,10 @@ class TransactionViewSet(viewsets.ViewSet):
             account_balance.amount += transaction.amount
         elif transaction.type == 'withdrawal':
             account_balance.amount -= transaction.amount
-
-        if transaction.date > account.last_transaction_date:
+        if account.last_transaction_date and transaction.date > account.last_transaction_date:
+            if transaction.date > account.last_transaction_date:
+                account.last_transaction_date = transaction.date
+        else:
             account.last_transaction_date = transaction.date
 
         account.save()
