@@ -58,12 +58,21 @@ class ExchangeSerializer(serializers.ModelSerializer):
         model = models.Exchange
         fields = ('id', 'name')
 
+
 class StockSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Stock
-        fields = ( 'isin', 'name', 'exchange')
+        fields = ('isin', 'name', 'exchange')
+
 
 class StockTransactionSerializer(serializers.ModelSerializer):
+    account_id = serializers.IntegerField(source='account.id', read_only=True)
+
     class Meta:
         model = models.StockTransaction
-        fields = ('isin', 'quantity', 'price', 'transaction_type', 'exchange', 'currency', 'date')
+        fields = ('isin', 'quantity', 'price', 'transaction_type', 'exchange', 'currency', 'date', 'account_id')
+
+    def create(self, validated_data):
+        account_id = self.context.get('account_id')
+        validated_data['account_id'] = account_id
+        return super().create(validated_data)

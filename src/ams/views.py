@@ -1,5 +1,4 @@
 import logging
-
 from ams import models, serializers
 from rest_framework import status, viewsets, generics
 from rest_framework.decorators import action
@@ -131,10 +130,10 @@ class ExchangeViewSet(viewsets.ViewSet):
 
 
 class StockViewSet(viewsets.ViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsObjectOwner)
 
     def create(self, request):
-        try :
+        try:
             exchange = models.Exchange.objects.get(pk=request.data.get("exchange"))
         except models.Exchange.DoesNotExist:
             return Response({"error": "Exchange not found."}, status=404)
@@ -161,11 +160,16 @@ class StockTransactionViewSet(viewsets.ViewSet):
 
     def create(self, request, account_id):
         try:
-            models.Account.objects.get(pk=account_id, user=request.user)
+            account = models.Account.objects.get(pk=account_id, user=request.user)
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        serializer = serializers.StockTransactionSerializer(data=request.data)
+        try:
+            models.Exchange.objects.get(pk=request.data.get("exchange"))
+        except models.Exchange.DoesNotExist:
+            return Response({"error": "Exchange not found."}, status=404)
+
+        serializer = serializers.StockTransactionSerializer(data=request.data, context={'account_id': account.id})
         serializer.is_valid(raise_exception=True)
 
         try:
@@ -173,14 +177,18 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Stock.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
-        # try :
-        #     models.Exchange.objects.filter(id=serializer.validated_data['exchange'])
-        # except models.Exchange.DoesNotExist:
-        #     return Response({"error": "Exchange not found."}, status=404)
-
-
-
-
         serializer.save()
         logging.info("Stock Transaction added")
         return Response({"msg": "Stock Transaction added"}, status=status.HTTP_201_CREATED)
+
+    def list(self, request, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+
+        serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
