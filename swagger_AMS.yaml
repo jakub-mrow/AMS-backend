@@ -1,0 +1,405 @@
+openapi: 3.0.3
+info:
+  title: AMS Endpoints
+  description: OpenAPI specification in yaml format describing functionalities provided by AMS Backend service.
+  version: 1.0.0
+  contact: {}
+servers:
+  - url: 127.0.0.1
+paths:
+  #Authorization
+  /auth/register:
+    post:
+      tags:
+        - Authorization
+      summary: Register request
+      description: Register request
+      operationId: registerRequest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: zbyszek3@zbyszek.pl
+                username:
+                  type: string
+                  example: zbyszek3
+                password:
+                  type: string
+                  example: haslo1234
+      responses:
+        '201':
+          description: Created
+
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    example: zbyszek3@zbyszek.pl
+                  username:
+                    type: string
+                    example: zbyszek3
+
+  /auth/login:
+    post:
+      tags:
+        - Authorization
+      summary: Login request
+      description: Login request
+      operationId: loginRequest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: zbyszek2
+                password:
+                  type: string
+                  example: haslo1234
+
+      responses:
+        '200':
+          description: OK
+
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access:
+                    type: string
+                    example: >-
+                      eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjkyODA5NDkzLCJpYXQiOjE2OTE1MTM0OTMsImp0aSI6IjhlNzdkZGY1NzYzOTRkODViYzk5N2NkZWM5Njg1ZDJlIiwidXNlcl9pZCI6MiwidXNlcm5hbWUiOiJ6YnlzemVrMiJ9._0Lr8-r_PsrsQYcp84XaZqtHUt3mWyBAA_JFtb6y_mg
+                  refresh:
+                    type: string
+                    example: >-
+                      eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY5MjgwOTQ5MywiaWF0IjoxNjkxNTEzNDkzLCJqdGkiOiI5ZGI2YWE5NmFkNjE0MDQ0YjA4ZWNmMmVmMmNjNTcxNyIsInVzZXJfaWQiOjIsInVzZXJuYW1lIjoiemJ5c3plazIifQ.6gBxwdBdFqe1AcF_n4K71w81FxpDE5t45KWJI04OhOY
+
+  /auth/login/refresh:
+    post:
+      tags:
+        - Authorization
+      summary: Refresh token
+      description: Refresh token
+      operationId: refreshToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh:
+                  type: string
+                  example: >-
+                    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY5MjgwOTQ5MywiaWF0IjoxNjkxNTEzNDkzLCJqdGkiOiI5ZGI2YWE5NmFkNjE0MDQ0YjA4ZWNmMmVmMmNjNTcxNyIsInVzZXJfaWQiOjIsInVzZXJuYW1lIjoiemJ5c3plazIifQ.6gBxwdBdFqe1AcF_n4K71w81FxpDE5t45KWJI04OhOY
+            examples:
+              Refresh token:
+                value:
+                  refresh: >-
+                    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY5MjgwOTQ5MywiaWF0IjoxNjkxNTEzNDkzLCJqdGkiOiI5ZGI2YWE5NmFkNjE0MDQ0YjA4ZWNmMmVmMmNjNTcxNyIsInVzZXJfaWQiOjIsInVzZXJuYW1lIjoiemJ5c3plazIifQ.6gBxwdBdFqe1AcF_n4K71w81FxpDE5t45KWJI04OhOY
+      responses:
+        '200':
+          description: OK
+
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access:
+                    type: string
+                    example: >-
+                      eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjkyODA5NTE4LCJpYXQiOjE2OTE1MTM0OTMsImp0aSI6IjQ5OTFlYzAyZjk2NjQ3MDg4NmM1OTYyZmRiOGViZDA0IiwidXNlcl9pZCI6MiwidXNlcm5hbWUiOiJ6YnlzemVrMiJ9.OEGNm9B0hHyVnj83MGacvKayIZKgoe9FBul2DlaDcNc
+              examples:
+                Refresh token:
+                  value:
+                    access: >-
+                      eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjkyODA5NTE4LCJpYXQiOjE2OTE1MTM0OTMsImp0aSI6IjQ5OTFlYzAyZjk2NjQ3MDg4NmM1OTYyZmRiOGViZDA0IiwidXNlcl9pZCI6MiwidXNlcm5hbWUiOiJ6YnlzemVrMiJ9.OEGNm9B0hHyVnj83MGacvKayIZKgoe9FBul2DlaDcNc
+  #Accounts
+  /api/accounts:
+    get:
+      tags:
+        - Accounts
+      summary: List user's accounts
+      description: List user's accounts
+      operationId: listUserSAccounts
+      responses:
+        '200':
+          description: OK
+
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+
+                    id:
+                      type: number
+                      example: 5
+                    name:
+                      type: string
+                      example: KONTO 2
+                    user_id:
+                      type: number
+                      example: 1
+                    balances:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          account_id:
+                            type: number
+                            example: 5
+                          amount:
+                            type: number
+                            example: 50.25
+                          currency:
+                            type: string
+                            example: PLN
+                    last_save_date:
+                      type: string
+                      format: date-time
+                      example: 2023-08-13T00:00:00.000000
+                    last_transaction_date:
+                      type: string
+                      format: date-time
+                      example: 2023-08-13T10:30:00.123456
+
+    post:
+      tags:
+        - Accounts
+      summary: Open account
+      description: Open account
+      operationId: openAccount
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: KONTO 5
+
+      responses:
+        '201':
+          description: Created
+
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Account created
+
+
+  /api/accounts/{account_id}:
+    get:
+      tags:
+        - Accounts
+      summary: View account
+      description: View account
+      operationId: viewAccount
+      parameters:
+        - in: path
+          name: account_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user's account
+
+      responses:
+        '200':
+          description: OK
+
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+
+                  id:
+                    type: number
+                    example: 5
+                  name:
+                    type: string
+                    example: KONTO 2
+                  user_id:
+                    type: number
+                    example: 1
+                  balances:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        account_id:
+                          type: number
+                          example: 5
+                        amount:
+                          type: number
+                          example: 50.25
+                        currency:
+                          type: string
+                          example: PLN
+                  last_save_date:
+                      type: string
+                      format: date-time
+                      example: 2023-08-13T00:00:00.000000
+                  last_transaction_date:
+                      type: string
+                      format: date-time
+                      example: 2023-08-13T10:30:00.123456
+
+    delete:
+      tags:
+        - Accounts
+      summary: Close account
+      description: Close account
+      operationId: closeAccount
+      parameters:
+        - in: path
+          name: account_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user's account
+      responses:
+        '204':
+          description: No content
+
+          content: {}
+
+
+  /api/accounts/{account_id}/transactions:
+    get:
+      tags:
+        - Transactions
+      summary: Get accounts transactions
+      description: Get accounts transactions
+      operationId: getAccountsTransactions
+      parameters:
+        - in: path
+          name: account_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user's account
+      responses:
+        '200':
+          description: OK
+
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    account_id:
+                      type: number
+                      example: 5
+                    amount:
+                      type: number
+                      example: 100
+                    currency:
+                      type: string
+                      example: BTC
+                    date:
+                      type: string
+                      format: date-time
+                      example: '2023-08-07T19:23:12.267756'
+                    id:
+                      type: number
+                      example: 64
+                    type:
+                      type: string
+                      example: deposit
+
+
+    post:
+      tags:
+        - Transactions
+      summary: Create Transaction
+      description: Create Transaction
+      operationId: createTransaction
+      parameters:
+        - in: path
+          name: account_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user's account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  example: 100
+                currency:
+                  type: string
+                  example: BTC
+                type:
+                  type: string
+                  example: deposit
+
+      responses:
+        '201':
+          description: Created
+
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Transaction created.
+
+  /api/accounts/{account_id}/transactions/{transaction_id}:
+    delete:
+      tags:
+        - Transactions
+      summary: Delete Transaction
+      description: Delete Transaction
+      operationId: deleteTransaction
+      parameters:
+        - in: path
+          name: account_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user's account
+        - in: path
+          name: transaction_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the transaction
+
+
+      responses:
+        '204':
+          description: No content
+
+
+
+tags:
+  - name: Authorization
+  - name: Accounts
+  - name: Transactions
