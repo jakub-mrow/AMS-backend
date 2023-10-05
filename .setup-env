@@ -1,2 +1,0 @@
-APP_PORT=8000
-APP_CONTAINER_NAME=ams-django

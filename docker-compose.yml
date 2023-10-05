@@ -3,8 +3,10 @@ version: "3.3"
 services:
   postgres:
     restart: unless-stopped
-    image: postgres
-    container_name: ams-postgres
+    build:
+      context: ./docker/postgres
+      dockerfile: Dockerfile
+    image: ams-postgres:latest
     volumes:
       - "postgres:/var/lib/postgresql/data"
     environment:
@@ -13,22 +15,21 @@ services:
       - POSTGRES_PASSWORD=postgres
     expose:
       - "5432"
+    ports:
+      - "5432:5432"
 
   django:
     restart: unless-stopped
     build:
-      context: .
-      dockerfile: docker/drf.dockerfile
-    image: ams-backend:latest
-    env_file:
-      - ./.env
-    container_name: ${APP_CONTAINER_NAME}
-    hostname: ${APP_CONTAINER_NAME}
-    command: python manage.py runserver 0.0.0.0:8000
+      context: ./docker/django
+      dockerfile: Dockerfile
+    image: ams-django:latest
     volumes:
       - .:/code
+    expose:
+      - "8000"
     ports:
-      - "${APP_PORT}:8000"
+      - "8000:8000"
     environment:
       - POSTGRES_NAME=postgres
       - POSTGRES_USER=postgres
@@ -40,18 +41,20 @@ services:
 
   redis:
     restart: unless-stopped
-    container_name: ams-redis
-    image: redis:7-alpine 
+    build:
+      context: ./docker/redis
+      dockerfile: Dockerfile
+    image: ams-redis:latest
     expose:
-        - 6379
+      - "6379"
+    ports:
+      - "6379:6379"
 
   celery:
     build:
-      context: .
-      dockerfile: docker/drf.dockerfile
-    image: celery-worker:latest
-    container_name: ams-celery-worker
-    command: celery -A main worker -l INFO -c 2
+      context: ./docker/celery
+      dockerfile: Dockerfile
+    image: ams-celery-worker:latest
     volumes:
       - .:/code
     depends_on: 
