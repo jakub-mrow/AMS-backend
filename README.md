@@ -71,3 +71,21 @@ To list all the tables
 ```
 \dt
 ```
+
+
+### Pipenv configuration
+Installing pipenv to python3
+```
+pip install pipenv
+```
+
+
+How to add package to pipenv
+1. Adding line to Pipfile
+    ```
+    pytest-django= "==4.5.2"
+    ```
+2. Executing command in terminal
+    ```
+   pipenv install "pytest-django==4.5.2"
+   ```

@@ -22,7 +22,6 @@ db.sqlite3
 
 **/.DS_Store
 
-
 # Local .terraform directories
 **/.terraform/*
 
@@ -59,3 +58,6 @@ override.tf.json
 terraform.rc
 
 deployment/
+
+Pipfile.lock
+

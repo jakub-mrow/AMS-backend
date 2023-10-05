@@ -38,7 +38,7 @@ class Command(BaseCommand):
 
             client = APIClient()
             data = {'username': username, 'password': password, 'email': email}
-            response = client.post('/auth/login/', data=data)
+            response = client.post('/auth/login', data=data)
             tokens = response.json()
 
             self.stdout.write(json.dumps(tokens))

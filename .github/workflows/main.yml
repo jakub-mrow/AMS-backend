@@ -32,38 +32,38 @@ jobs:
       - name: "Stop containers"
         run: docker-compose down
 
-  build-and-push:
-    needs: continuous-integration
-    runs-on: ubuntu-latest
+  # build-and-push:
+  #   needs: continuous-integration
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v2
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to AWS ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+  #     - name: Login to AWS ECR
+  #       id: login-ecr
+  #       uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build and push Docker image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ams.registry.apps
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-django -f ./docker/django/Dockerfile ./docker/django
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-django
+  #     - name: Build and push Docker image
+  #       env:
+  #         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+  #         ECR_REPOSITORY: ams.registry.apps
+  #       run: |
+  #         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-django -f ./docker/django/Dockerfile ./docker/django
+  #         docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-django
 
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-redis -f ./docker/redis/Dockerfile ./docker/redis
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-redis
+  #         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-redis -f ./docker/redis/Dockerfile ./docker/redis
+  #         docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-redis
 
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-postgres -f ./docker/postgres/Dockerfile ./docker/postgres
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-postgres
+  #         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-postgres -f ./docker/postgres/Dockerfile ./docker/postgres
+  #         docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-postgres
 
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-celery-worker -f ./docker/celery/Dockerfile ./docker/celery
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-celery-worker
+  #         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-celery-worker -f ./docker/celery/Dockerfile ./docker/celery
+  #         docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-celery-worker

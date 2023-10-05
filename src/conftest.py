@@ -13,10 +13,10 @@ def client():
     email = 'unknown@email.com'
     
     register_data = {'username': username, 'password': password, 'email': email}
-    client.post('/auth/register/', data=register_data)
+    client.post('/auth/register', data=register_data)
 
     login_data = {'username': username, 'password': password}
-    response = client.post("/auth/login/", data=login_data)
+    response = client.post("/auth/login", data=login_data)
 
     token = response.json().get('access', "")
     client.credentials(HTTP_AUTHORIZATION='Bearer ' + token)
