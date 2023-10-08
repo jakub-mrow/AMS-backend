@@ -22,11 +22,19 @@ class AccountViewSet(viewsets.ModelViewSet):
         logging.info("Account created")
         return Response({"msg": "Account created"}, status=status.HTTP_201_CREATED)
 
+    def update(self, request, *args, **kwargs):
+        account = self.get_object()
+        serializer = self.get_serializer(account, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        logging.info("Account updated")
+        return Response({"msg": "Account updated"}, status=status.HTTP_200_OK)
+
     def get_queryset(self):
         return models.Account.objects.filter(user=self.request.user).order_by('id')
 
     def get_serializer_class(self):
-        if self.request.method == 'POST':
+        if self.request.method in ['POST', 'PUT']:
             return serializers.AccountCreateSerializer
         return serializers.AccountSerializer
 
