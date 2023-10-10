@@ -169,11 +169,6 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        try:
-            models.Exchange.objects.get(pk=request.data.get("exchange"))
-        except models.Exchange.DoesNotExist:
-            return Response({"error": "Exchange not found."}, status=404)
-
         serializer = serializers.StockTransactionSerializer(data=request.data, context={'account_id': account.id})
         serializer.is_valid(raise_exception=True)
 
