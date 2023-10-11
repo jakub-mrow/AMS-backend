@@ -1,5 +1,4 @@
 import logging
-
 from ams import models, serializers
 from rest_framework import status, viewsets
 from rest_framework.generics import get_object_or_404
@@ -7,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .permissions import IsObjectOwner
+from .serializers import ExchangeSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -123,3 +123,80 @@ class TransactionViewSet(viewsets.ViewSet):
         transaction.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ExchangeViewSet(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated,)
+
+    def create(self, request):
+        serializer = ExchangeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        logging.info("Exchange added")
+        return Response({"msg": "Exchange added"}, status=status.HTTP_201_CREATED)
+
+    def list(self, request):
+        qs = models.Exchange.objects.all()
+        serializer = serializers.ExchangeSerializer(qs, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class StockViewSet(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated, IsObjectOwner)
+
+    def create(self, request):
+        try:
+            exchange = models.Exchange.objects.get(pk=request.data.get("exchange"))
+        except models.Exchange.DoesNotExist:
+            return Response({"error": "Exchange not found."}, status=404)
+
+        serializer = serializers.StockSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(exchange=exchange)
+        logging.info("Stock added")
+        return Response({"msg": "Stock added"}, status=status.HTTP_201_CREATED)
+
+    def list(self, request, exchange_id=None):
+        try:
+            stocks = models.Stock.objects.filter(exchange=exchange_id)
+        except models.Stock.DoesNotExist:
+            return Response({"error": "Stock not found."}, status=404)
+
+        serializer = serializers.StockSerializer(stocks, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class StockTransactionViewSet(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated,)
+
+    def create(self, request, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        serializer = serializers.StockTransactionSerializer(data=request.data, context={'account_id': account.id})
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            models.Stock.objects.get(pk=serializer.validated_data['isin'])
+        except models.Stock.DoesNotExist:
+            return Response({"error": "Stock not found."}, status=404)
+
+        serializer.save()
+        logging.info("Stock Transaction added")
+        return Response({"msg": "Stock Transaction added"}, status=status.HTTP_201_CREATED)
+
+    def list(self, request, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+
+        serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
