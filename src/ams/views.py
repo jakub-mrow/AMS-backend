@@ -186,8 +186,42 @@ class StockTransactionViewSet(viewsets.ViewSet):
             return Response({"error": "Stock not found."}, status=404)
 
         serializer.save()
+
+        stock_balance, created = models.StockBalance.objects.get_or_create(
+            isin=stock_transaction.isin,
+            account=account
+        )
+        if created:
+            stock_balance.first_event_date = datetime.date.today()
+
+        stock_balance.last_transaction_date = datetime.datetime.now()
+
+        stock_balance.quantity += stock_transaction.quantity
+        stock_balance.price = stock_transaction.price
+        stock_balance.value = stock_balance.quantity * stock_balance.price
+        stock_balance.currency = stock_transaction.currency
+        stock_balance.last_save_date = datetime.date.today()
+        # stock_balance.xirr = ...
+
+        stock_balance.save()
         logging.info("Stock Transaction added")
         return Response({"msg": "Stock Transaction added"}, status=status.HTTP_201_CREATED)
+
+    def list(self, request, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+
+        serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class StockBalanceViewSet(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated,)
 
     def list(self, request, account_id):
         try:
