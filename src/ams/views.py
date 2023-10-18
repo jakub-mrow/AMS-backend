@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta, date
 
 from ams import models, serializers
 from rest_framework import status, viewsets
@@ -9,6 +10,32 @@ from rest_framework.response import Response
 from .permissions import IsObjectOwner
 
 logger = logging.getLogger(__name__)
+
+
+def rebuild_account_balance(account_id, currency, transaction_date):
+    account_history = models.AccountHistory.objects.filter(account_id=account_id,
+                                                           date=transaction_date - timedelta(days=1)).first()
+    account_balance = models.AccountBalance.objects.filter(account_id=account_id,
+                                                           currency=currency).first()
+    if account_history:
+        account_balance_history = models.AccountHistoryBalance.objects.filter(account_history__id=account_history.id, currency=currency).first()
+        if account_balance_history:
+            account_balance.amount = account_balance_history.amount
+        else:
+            account_balance.amount = 0
+    else:
+        account_balance.amount = 0
+
+    desired_date = date(transaction_date.year, transaction_date.month, transaction_date.day)
+
+    transactions_on_date = models.Transaction.objects.filter(date__date=desired_date).order_by('date')
+    for transaction in transactions_on_date:
+        if transaction.type == models.Transaction.DEPOSIT:
+            account_balance.amount += transaction.amount
+        elif transaction.type == models.Transaction.WITHDRAWAL:
+            account_balance.amount -= transaction.amount
+
+    account_balance.save()
 
 
 class AccountViewSet(viewsets.ModelViewSet):
@@ -64,19 +91,32 @@ class TransactionViewSet(viewsets.ViewSet):
                 currency=transaction.currency
             )
 
-        if transaction.type == 'deposit':
-            account_balance.amount += transaction.amount
-        elif transaction.type == 'withdrawal':
-            account_balance.amount -= transaction.amount
-        if account.last_transaction_date:
-            if transaction.date > account.last_transaction_date:
-                account.last_transaction_date = transaction.date
+        if account.last_save_date and account.last_transaction_date:
+            print("")
+            if account.last_transaction_date > transaction.date > account.last_save_date:
+                rebuild_account_balance(account_id, transaction.currency, transaction.date)
+            else:
+                if transaction.type == 'deposit':
+                    account_balance.amount += transaction.amount
+                elif transaction.type == 'withdrawal':
+                    account_balance.amount -= transaction.amount
+                if account.last_transaction_date:
+                    if transaction.date > account.last_transaction_date:
+                        account.last_transaction_date = transaction.date
+                else:
+                    account.last_transaction_date = transaction.date
         else:
-            account.last_transaction_date = transaction.date
-
+            if transaction.type == 'deposit':
+                account_balance.amount += transaction.amount
+            elif transaction.type == 'withdrawal':
+                account_balance.amount -= transaction.amount
+            if account.last_transaction_date:
+                if transaction.date > account.last_transaction_date:
+                    account.last_transaction_date = transaction.date
+            else:
+                account.last_transaction_date = transaction.date
+            account_balance.save()
         account.save()
-        account_balance.save()
-
         return Response({"msg": "Transaction created."}, status=status.HTTP_201_CREATED)
 
     def list(self, request, account_id):
