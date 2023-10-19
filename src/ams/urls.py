@@ -18,5 +18,5 @@ router.register(r'stock/(?P<account_id>\d+)/transaction', views.StockTransaction
 
 urlpatterns = [
     re_path("", include(router.urls)),
-
+    re_path(r'search', views.StockSearchAPIView.as_view(), name='api-search')
 ]
