@@ -127,8 +127,8 @@ class TransactionViewSet(viewsets.ViewSet):
                 currency=transaction.currency
             )
 
-        if account.last_save_date and account.last_transaction_date:
-            if account.last_transaction_date > transaction.date > account.last_save_date:
+        if account.last_save_date and account.last_transaction_date.date:
+            if account.last_transaction_date.date() > transaction.date.date() > account.last_save_date.date():
                 rebuild_account_balance(account, transaction.date)
             else:
                 add_transaction_to_account_balance(transaction, account, account_balance)
