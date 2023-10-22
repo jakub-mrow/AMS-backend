@@ -397,9 +397,42 @@ paths:
         '204':
           description: No content
 
+  /api/search:
+    get:
+      tags:
+        - Stocks
+      summary: Search EOD API
+      description: Search EOD API
+      operationId: searchStocks
+      parameters:
+        - in: query
+          name: query_string
+          schema:
+            type: string
+            example: ORLEN
+          required: true
+          description: Query to search for
+
+      responses:
+        '200':
+          description: OK
+          content:
+
+            application/json:
+              example:
+                - Code: PKN
+                  Exchange: WAR
+                  Name: Polski Koncern Naftowy ORLEN SA
+                  Type: Common Stock
+                  Country: Poland
+                  Currency: PLN
+                  ISIN: PLPKN0000018
+                  previousClose: 66.45
+                  previousCloseDate: '2023-10-18'
 
 
 tags:
   - name: Authorization
   - name: Accounts
   - name: Transactions
+  - name: Stocks

@@ -30,3 +30,4 @@ class Command(BaseCommand):
             account.save()
 
         self.stdout.write(self.style.SUCCESS('Successfully updated account history and last save date'))
+
