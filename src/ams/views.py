@@ -1,9 +1,15 @@
 import logging
+import os
+
+import requests
 from ams import models, serializers
+from django.http import JsonResponse
 from rest_framework import status, viewsets
+from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
@@ -11,6 +17,8 @@ from .serializers import ExchangeSerializer
 from ams.services.stock_balance_service import update_stock_balance
 
 logger = logging.getLogger(__name__)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+EOD_TOKEN = os.getenv('EOD_TOKEN')
 
 
 class AccountViewSet(viewsets.ModelViewSet):
@@ -223,3 +231,18 @@ class StockBalanceViewSet(viewsets.ViewSet):
         serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class StockSearchAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        query_string = request.GET['query_string']
+        url = f'https://eodhd.com/api/search/{query_string}?api_token={EOD_TOKEN}'
+
+        try:
+            response = requests.get(url, timeout=30.0)
+            data = response.json()
+            return Response(data, status=response.status_code)
+        except Exception as e:
+            return Response({'error': 'Internal Server Error'}, status=500)

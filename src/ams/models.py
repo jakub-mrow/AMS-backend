@@ -75,7 +75,6 @@ class StockTransaction(models.Model):
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=13, decimal_places=2)
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPE_CHOICES)
-    currency = models.CharField(max_length=3)
     date = models.DateTimeField()
 
     def __str__(self):
@@ -85,6 +84,7 @@ class StockTransaction(models.Model):
 class Stock(models.Model):
     isin = models.CharField(max_length=12, primary_key=True)
     name = models.CharField(max_length=128)
+    currency = models.CharField(max_length=3)
     exchange = models.ForeignKey(Exchange, on_delete=models.CASCADE)
 
     def __str__(self):
