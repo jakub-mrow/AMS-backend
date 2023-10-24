@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
 
+from ams.services.stock_balance_service import update_stock_balance
+
 logger = logging.getLogger(__name__)
 
 
@@ -186,24 +188,11 @@ class StockTransactionViewSet(viewsets.ViewSet):
             return Response({"error": "Stock not found."}, status=404)
 
         serializer.save()
+        try:
+            update_stock_balance(serializer.instance, account)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
 
-        stock_balance, created = models.StockBalance.objects.get_or_create(
-            isin=stock_transaction.isin,
-            account=account
-        )
-        if created:
-            stock_balance.first_event_date = datetime.date.today()
-
-        stock_balance.last_transaction_date = datetime.datetime.now()
-
-        stock_balance.quantity += stock_transaction.quantity
-        stock_balance.price = stock_transaction.price
-        stock_balance.value = stock_balance.quantity * stock_balance.price
-        stock_balance.currency = stock_transaction.currency
-        stock_balance.last_save_date = datetime.date.today()
-        # stock_balance.xirr = ...
-
-        stock_balance.save()
         logging.info("Stock Transaction added")
         return Response({"msg": "Stock Transaction added"}, status=status.HTTP_201_CREATED)
 

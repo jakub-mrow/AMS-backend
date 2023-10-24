@@ -95,12 +95,10 @@ class StockBalance(models.Model):
     isin = models.CharField(max_length=12)
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='stock_balance')
     quantity = models.IntegerField()
-    price = models.DecimalField(max_digits=13, decimal_places=2)
     value = models.DecimalField(max_digits=13, decimal_places=2)
-    currency = models.CharField(max_length=3)
-    xirr = models.DecimalField(max_digits=13, decimal_places=2)
-    last_save_date = models.DateField()
-    first_event_date = models.DateField()
+    result = models.DecimalField(max_digits=13, decimal_places=2)
+    last_save_date = models.DateField(null=True)
+    first_event_date = models.DateField(null=True)
     last_transaction_date = models.DateTimeField()
 
     def __str__(self):
