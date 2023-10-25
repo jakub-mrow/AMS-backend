@@ -1,5 +1,7 @@
 import logging
+from datetime import timedelta, date
 import os
+
 
 import requests
 from ams import models, serializers
@@ -82,18 +84,13 @@ class TransactionViewSet(viewsets.ViewSet):
                 currency=transaction.currency
             )
 
-        if transaction.type == 'deposit':
-            account_balance.amount += transaction.amount
-        elif transaction.type == 'withdrawal':
-            account_balance.amount -= transaction.amount
-        if account.last_transaction_date:
-            if transaction.date > account.last_transaction_date:
-                account.last_transaction_date = transaction.date
+        if account.last_save_date and account.last_transaction_date.date:
+            if account.last_transaction_date.date() > transaction.date.date() > account.last_save_date.date():
+                rebuild_account_balance(account, transaction.date)
+            else:
+                add_transaction_to_account_balance(transaction, account, account_balance)
         else:
-            account.last_transaction_date = transaction.date
-
-        account.save()
-        account_balance.save()
+            add_transaction_to_account_balance(transaction, account, account_balance)
 
         return Response({"msg": "Transaction created."}, status=status.HTTP_201_CREATED)
 
