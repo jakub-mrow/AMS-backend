@@ -89,3 +89,17 @@ class Stock(models.Model):
 
     def __str__(self):
         return f"{self.name} on {self.exchange}"
+
+
+class StockBalance(models.Model):
+    isin = models.CharField(max_length=12)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='stock_balance')
+    quantity = models.IntegerField()
+    value = models.DecimalField(max_digits=13, decimal_places=2)
+    result = models.DecimalField(max_digits=13, decimal_places=2)
+    last_save_date = models.DateField(null=True)
+    first_event_date = models.DateField(null=True)
+    last_transaction_date = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.quantity} of {self.isin} for {self.account_id}"
