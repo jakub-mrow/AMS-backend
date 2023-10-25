@@ -16,6 +16,8 @@ from rest_framework.views import APIView
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
 
+from ams.services.stock_balance_service import update_stock_balance
+
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 EOD_TOKEN = os.getenv('EOD_TOKEN')
@@ -236,8 +238,29 @@ class StockTransactionViewSet(viewsets.ViewSet):
             return Response({"error": "Stock not found."}, status=404)
 
         serializer.save()
+        try:
+            update_stock_balance(serializer.instance, account)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
         logging.info("Stock Transaction added")
         return Response({"msg": "Stock Transaction added"}, status=status.HTTP_201_CREATED)
+
+    def list(self, request, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+
+        serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class StockBalanceViewSet(viewsets.ViewSet):
+    permission_classes = (IsAuthenticated,)
 
     def list(self, request, account_id):
         try:
