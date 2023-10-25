@@ -1,5 +1,5 @@
 from datetime import timedelta, date
-from ...ams import models
+from .. import models
 
 
 def add_transaction_to_account_balance(transaction, account, account_balance):
