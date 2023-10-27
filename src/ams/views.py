@@ -63,10 +63,10 @@ class AccountViewSet(viewsets.ModelViewSet):
             account_preferences.tax_value = serializer.validated_data.get('tax_value')
             account_preferences.tax_currency = serializer.validated_data.get('tax_currency')
             account_preferences.save()
-            return Response({"msg": "Account preferences updated"}, status=status.HTTP_200_OK)
         else:
             serializer.save()
-            return Response({"msg": "Account preferences updated"}, status=status.HTTP_200_OK)
+
+        return Response({"msg": "Account preferences updated"}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['GET'])
     def get_preferences(self, request, pk=None):
