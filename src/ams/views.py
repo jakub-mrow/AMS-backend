@@ -1,5 +1,4 @@
 import logging
-from datetime import timedelta, date
 import os
 
 
@@ -7,9 +6,7 @@ import requests
 from rest_framework.decorators import action
 
 from ams import models, serializers
-from django.http import JsonResponse
 from rest_framework import status, viewsets
-from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
