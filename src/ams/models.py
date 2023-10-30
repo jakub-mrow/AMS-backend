@@ -108,5 +108,4 @@ class StockBalance(models.Model):
 class AccountPreferences(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='account_preferences', unique=True)
     base_currency = models.CharField(max_length=3)
-    tax_value = models.DecimalField(max_digits=5, decimal_places=2)
     tax_currency = models.CharField(max_length=3)

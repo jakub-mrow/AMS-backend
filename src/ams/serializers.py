@@ -80,11 +80,10 @@ class StockTransactionSerializer(serializers.ModelSerializer):
 
 class AccountPreferencesSerializer(serializers.ModelSerializer):
     account_id = serializers.IntegerField(source='account.id', read_only=True)
-    tax_value = serializers.DecimalField(max_digits=5, decimal_places=2, coerce_to_string=False)
 
     class Meta:
         model = models.AccountPreferences
-        fields = ('account_id', 'base_currency', 'tax_value', 'tax_currency')
+        fields = ('account_id', 'base_currency', 'tax_currency')
 
     def create(self, validated_data):
         account_id = self.context.get('account_id')
