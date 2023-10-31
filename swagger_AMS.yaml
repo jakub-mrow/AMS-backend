@@ -282,6 +282,79 @@ paths:
 
           content: {}
 
+  /api/accounts/{account_id}/set_preferences:
+    put:
+      tags:
+        - Accounts
+      summary: Set account preferences
+      description: Set account preferences
+      operationId: setAccountPreferences
+      parameters:
+        - in: path
+          name: account_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user's account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                base_currency:
+                  type: string
+                  example: EUR
+                tax_currency:
+                  type: string
+                  example: PLN
+
+      responses:
+        '200':
+          description: OK
+
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Account preferences updated
+  /api/accounts/{account_id}/get_preferences:
+    get:
+      tags:
+        - Accounts
+      summary: Get account preferences
+      description: Get account preferences
+      operationId: getAccountPreferences
+      parameters:
+        - in: path
+          name: account_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user's account
+
+      responses:
+        '200':
+          description: OK
+
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  account_id:
+                    type: integer
+                    example: 1
+                  base_currency:
+                    type: string
+                    example: EUR
+                  tax_currency:
+                    type: string
+                    example: PLN
+  #Transactions
 
   /api/accounts/{account_id}/transactions:
     get:

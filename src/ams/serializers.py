@@ -76,3 +76,16 @@ class StockTransactionSerializer(serializers.ModelSerializer):
         account_id = self.context.get('account_id')
         validated_data['account_id'] = account_id
         return super().create(validated_data)
+
+
+class AccountPreferencesSerializer(serializers.ModelSerializer):
+    account_id = serializers.IntegerField(source='account.id', read_only=True)
+
+    class Meta:
+        model = models.AccountPreferences
+        fields = ('account_id', 'base_currency', 'tax_currency')
+
+    def create(self, validated_data):
+        account_id = self.context.get('account_id')
+        validated_data['account_id'] = account_id
+        return super().create(validated_data)

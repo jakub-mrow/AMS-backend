@@ -1,13 +1,12 @@
 import logging
-from datetime import timedelta, date
 import os
 
 
 import requests
+from rest_framework.decorators import action
+
 from ams import models, serializers
-from django.http import JsonResponse
 from rest_framework import status, viewsets
-from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -51,6 +50,37 @@ class AccountViewSet(viewsets.ModelViewSet):
         if self.request.method in ['POST', 'PUT']:
             return serializers.AccountCreateSerializer
         return serializers.AccountSerializer
+
+    @action(detail=True, methods=['PUT'])
+    def set_preferences(self, request, pk=None):
+        account = self.get_object()
+        serializer = serializers.AccountPreferencesSerializer(data=request.data, context={'account_id': account.id})
+        serializer.is_valid(raise_exception=True)
+
+        account_preferences = account.account_preferences
+        if account_preferences:
+            account_preferences.base_currency = serializer.validated_data.get('base_currency')
+            account_preferences.tax_value = serializer.validated_data.get('tax_value')
+            account_preferences.tax_currency = serializer.validated_data.get('tax_currency')
+            account_preferences.save()
+        else:
+            serializer.save()
+
+        return Response({"msg": "Account preferences updated"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['GET'])
+    def get_preferences(self, request, pk=None):
+        account = self.get_object()
+        try:
+            preferences = account.account_preferences
+        except models.AccountPreferences.DoesNotExist:
+            preferences = None
+
+        if preferences:
+            return Response(serializers.AccountPreferencesSerializer(account.account_preferences).data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "No preferences found for to this account"},
+                            status=status.HTTP_404_NOT_FOUND)
 
 
 class TransactionViewSet(viewsets.ViewSet):
