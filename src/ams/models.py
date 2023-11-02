@@ -70,9 +70,11 @@ class Exchange(models.Model):
 class StockTransaction(models.Model):
     BUY = 'buy'
     SELL = 'sell'
+    PRICE = 'price'
     TRANSACTION_TYPE_CHOICES = (
         (BUY, 'Buy'),
         (SELL, 'Sell'),
+        (PRICE, 'Price')
     )
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='stock_transaction')
