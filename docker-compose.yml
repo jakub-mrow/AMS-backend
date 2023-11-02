@@ -59,6 +59,11 @@ services:
     image: ams-celery-worker:latest
     volumes:
       - .:/code
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - EOD_TOKEN=${EOD_TOKEN}
     depends_on:
       - redis
 
