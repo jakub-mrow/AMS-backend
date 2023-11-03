@@ -1,6 +1,7 @@
-from ams import models
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
+
+from ams import models
 
 
 class AccountBalanceSerializer(serializers.ModelSerializer):
@@ -76,6 +77,24 @@ class StockTransactionSerializer(serializers.ModelSerializer):
         account_id = self.context.get('account_id')
         validated_data['account_id'] = account_id
         return super().create(validated_data)
+
+
+class StockBalanceDtoSerializer(serializers.ModelSerializer):
+    value = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
+    result = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
+
+    class Meta:
+        model = models.StockBalance
+        fields = ('isin', 'quantity', 'value', 'result')
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        stock = models.Stock.objects.get(isin=instance.isin)
+        data['name'] = stock.name
+        data['ticker'] = stock.ticker
+        data['currency'] = stock.currency
+        data['exchange_code'] = stock.exchange.code
+        return data
 
 
 class AccountPreferencesSerializer(serializers.ModelSerializer):

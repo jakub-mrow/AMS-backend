@@ -1,23 +1,19 @@
 import logging
 import os
 
-
 import requests
-from rest_framework.decorators import action
-
-from ams import models, serializers
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from ams import models, serializers
+from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance
+from ams.services.stock_balance_service import update_stock_balance
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
-
-from ams.services.stock_balance_service import update_stock_balance
-
-from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -259,6 +255,17 @@ class StockBalanceViewSet(viewsets.ViewSet):
 
         serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'])
+    def list_dto(self, request, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_balances = models.StockBalance.objects.filter(account=account)
+        serializer = serializers.StockBalanceDtoSerializer(stock_balances, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
