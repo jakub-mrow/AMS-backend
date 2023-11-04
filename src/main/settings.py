@@ -196,3 +196,6 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='0'),
     },
 }
+
+EOD_TOKEN = os.getenv('EOD_TOKEN')
+EOD_API_URL = "https://eodhd.com/api"

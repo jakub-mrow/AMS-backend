@@ -1,16 +1,14 @@
 import logging
-import os
 
 import requests
 
-EOD_TOKEN = os.getenv('EOD_TOKEN')
-API_URL = "https://eodhd.com/api"
+from main.settings import EOD_TOKEN, EOD_API_URL
 
 logger = logging.getLogger(__name__)
 
 
 def get_current_price(stock, date):
-    url = f'{API_URL}/eod/{stock.ticker}.{stock.exchange.code}?api_token={EOD_TOKEN}&fmt=json&from={date.strftime("%Y-%m-%d")}&to={date.strftime("%Y-%m-%d")}'
+    url = f'{EOD_API_URL}/eod/{stock.ticker}.{stock.exchange.code}?api_token={EOD_TOKEN}&fmt=json&from={date.strftime("%Y-%m-%d")}&to={date.strftime("%Y-%m-%d")}'
 
     try:
         response = requests.get(url, timeout=30.0)

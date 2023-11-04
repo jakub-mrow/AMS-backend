@@ -11,9 +11,9 @@ from rest_framework.views import APIView
 from ams import models, serializers
 from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance
 from ams.services.stock_balance_service import update_stock_balance, update_stock_price
+from main.settings import EOD_TOKEN, EOD_API_URL
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
-from .services.eod_service import EOD_TOKEN
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -262,7 +262,7 @@ class StockSearchAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         query_string = request.GET['query_string']
-        url = f'https://eodhd.com/api/search/{query_string}?api_token={EOD_TOKEN}'
+        url = f'{EOD_API_URL}/search/{query_string}?api_token={EOD_TOKEN}'
 
         try:
             response = requests.get(url, timeout=30.0)
