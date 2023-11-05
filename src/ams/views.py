@@ -26,7 +26,12 @@ class AccountViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        account = serializer.save()
+        models.AccountPreferences.objects.create(
+            account=account,
+            base_currency='PLN',
+            tax_currency='PLN',
+        )
         logging.info("Account created")
         return Response({"msg": "Account created"}, status=status.HTTP_201_CREATED)
 
