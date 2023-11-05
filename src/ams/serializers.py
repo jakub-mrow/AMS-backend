@@ -35,7 +35,7 @@ class TransactionCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Transaction
-        fields = ('id', 'account', 'type', 'amount', 'date')
+        fields = ('id', 'account', 'type', 'amount', 'currency', 'date')
         read_only_fields = ('id', 'account')
 
     def create(self, validated_data):
@@ -50,7 +50,7 @@ class TransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Transaction
-        fields = ('id', 'account_id', 'type', 'amount', 'date')
+        fields = ('id', 'account_id', 'type', 'amount', 'currency', 'date')
 
 
 class ExchangeSerializer(serializers.ModelSerializer):
