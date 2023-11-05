@@ -224,11 +224,14 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Stock.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
-        serializer.save()
+
+
         try:
-            update_stock_balance(serializer.instance, account)
+            update_stock_balance(serializer.validated_data, account)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
+
+        serializer.save()
 
         logging.info("Stock Transaction added")
         return Response({"msg": "Stock Transaction added"}, status=status.HTTP_201_CREATED)
