@@ -39,6 +39,7 @@ services:
       - postgres
       - redis
       - celery
+      - celery-beat
 
   redis:
     restart: unless-stopped
@@ -58,7 +59,22 @@ services:
     image: ams-celery-worker:latest
     volumes:
       - .:/code
-    depends_on: 
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - EOD_TOKEN=${EOD_TOKEN}
+    depends_on:
+      - redis
+
+  celery-beat:
+    build:
+      context: ./docker/celery-beat
+      dockerfile: Dockerfile
+    image: ams-celery-beat:latest
+    volumes:
+      - .:/code
+    depends_on:
       - redis
 
 volumes:
