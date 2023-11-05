@@ -4,8 +4,7 @@
         "mic": "ASEX",
         "open": "10:15:00",
         "close": "17:20:00",
-        "timezone": "Eastern European Standard Time",
-        "offset": "UTC +02:00",
+        "timezone": "Europe/Athens",
         "country": "Greece",
         "code": "AT"
     },
@@ -14,8 +13,7 @@
         "mic": "XASX",
         "open": "10:00:00",
         "close": "16:00:00",
-        "timezone": "AUS Eastern Standard Time",
-        "offset": "UTC +10:00",
+        "timezone": "Australia/Sydney",
         "country": "Australia",
         "code": "AU"
     },
@@ -24,8 +22,7 @@
         "mic": "BVMF",
         "open": "10:00:00",
         "close": "17:00:00",
-        "timezone": "Brasilia Standard Time",
-        "offset": "UTC -03:00",
+        "timezone": "America/Sao_Paulo",
         "country": "Brazil",
         "code": "SA"
     },
@@ -34,8 +31,7 @@
         "mic": "XIST",
         "open": "10:00:00",
         "close": "18:00:00",
-        "timezone": "Turkey Time",
-        "offset": "UTC +03:00",
+        "timezone": "Europe/Istanbul",
         "country": "Turkey",
         "code": "IS"
     },
@@ -44,8 +40,7 @@
         "mic": "XBUD",
         "open": "09:00:00",
         "close": "17:00:00",
-        "timezone": "Central European Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Budapest",
         "country": "Hungary",
         "code": "BUD"
     },
@@ -54,8 +49,7 @@
         "mic": "XBUE",
         "open": "11:00:00",
         "close": "17:00:00",
-        "timezone": "Argentina Standard Time",
-        "offset": "UTC -03:00",
+        "timezone": "America/Argentina/Buenos_Aires",
         "country": "Argentina",
         "code": "BA"
     },
@@ -64,8 +58,7 @@
         "mic": "XKLS",
         "open": "09:00:00",
         "close": "12:30:00",
-        "timezone": "Malaysia Time",
-        "offset": "UTC +08:00",
+        "timezone": "Asia/Kuala_Lumpur",
         "country": "Malaysia",
         "code": "KLSE"
     },
@@ -74,8 +67,7 @@
         "mic": "XDUS",
         "open": "08:00:00",
         "close": "22:00:00",
-        "timezone": "Central European Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Berlin",
         "country": "Germany",
         "code": "DU"
     },
@@ -84,8 +76,7 @@
         "mic": "XAMS",
         "open": "09:00:00",
         "close": "17:40:00",
-        "timezone": "Central Europe Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Amsterdam",
         "country": "Netherlands",
         "code": "AS"
     },
@@ -94,8 +85,7 @@
         "mic": "XBRU",
         "open": "09:00:00",
         "close": "17:40:00",
-        "timezone": "Central Europe Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Brussels",
         "country": "Belgium",
         "code": "BR"
     },
@@ -104,8 +94,7 @@
         "mic": "XDUB",
         "open": "09:00:00",
         "close": "17:40:00",
-        "timezone": "Central European Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Dublin",
         "country": "Ireland",
         "code": "IR"
     },
@@ -114,8 +103,7 @@
         "mic": "XLIS",
         "open": "09:00:00",
         "close": "17:40:00",
-        "timezone": "Western European Standard Time",
-        "offset": "UTC +00:00",
+        "timezone": "Europe/Lisbon",
         "country": "Portugal",
         "code": "LS"
     },
@@ -124,8 +112,7 @@
         "mic": "XOSL",
         "open": "09:00:00",
         "close": "17:40:00",
-        "timezone": "Central Europe Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Oslo",
         "country": "Norway",
         "code": "OL"
     },
@@ -134,8 +121,7 @@
         "mic": "XPAR",
         "open": "09:00:00",
         "close": "17:40:00",
-        "timezone": "Central European Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Paris",
         "country": "France",
         "code": "PA"
     },
@@ -144,8 +130,7 @@
         "mic": "XFRA",
         "open": "09:00:00",
         "close": "17:30:00",
-        "timezone": "Central European Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Berlin",
         "country": "Germany",
         "code": "F"
     },
@@ -154,8 +139,7 @@
         "mic": "XHAM",
         "open": "08:00:00",
         "close": "22:00:00",
-        "timezone": "Central European Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Berlin",
         "country": "Germany",
         "code": "HM"
     },
@@ -164,8 +148,7 @@
         "mic": "XIDX",
         "open": "09:30:00",
         "close": "11:30:00",
-        "timezone": "Western Indonesia Time",
-        "offset": "UTC +07:00",
+        "timezone": "Asia/Jakarta",
         "country": "Indonesia",
         "code": "JK"
     },
@@ -174,8 +157,7 @@
         "mic": "XJSE",
         "open": "09:00:00",
         "close": "17:00:00",
-        "timezone": "South Africa Standard Time",
-        "offset": "UTC +02:00",
+        "timezone": "Africa/Johannesburg",
         "country": "South Africa",
         "code": "JSE"
     },
@@ -184,8 +166,7 @@
         "mic": "XKRX",
         "open": "09:00:00",
         "close": "15:30:00",
-        "timezone": "Korean Standard Time",
-        "offset": "UTC +09:00",
+        "timezone": "Asia/Seoul",
         "country": "Korea, Republic of",
         "code": "KO"
     },
@@ -194,8 +175,7 @@
         "mic": "XLIM",
         "open": "09:30:00",
         "close": "15:52:00",
-        "timezone": "Peru Standard Time",
-        "offset": "UTC -05:00",
+        "timezone": "America/Lima",
         "country": "Peru",
         "code": "LIM"
     },
@@ -204,8 +184,7 @@
         "mic": "XLON",
         "open": "08:00:00",
         "close": "16:35:00",
-        "timezone": "Greenwich Mean Time",
-        "offset": "UTC +00:00",
+        "timezone": "Europe/London",
         "country": "United Kingdom",
         "code": "IL"
     },
@@ -214,8 +193,7 @@
         "mic": "XLON",
         "open": "08:00:00",
         "close": "16:35:00",
-        "timezone": "Greenwich Mean Time",
-        "offset": "UTC +00:00",
+        "timezone": "Europe/London",
         "country": "United Kingdom",
         "code": "IL"
     },
@@ -224,8 +202,7 @@
         "mic": "XMEX",
         "open": "08:30:00",
         "close": "15:00:00",
-        "timezone": "Central Standard Time (Mexico)",
-        "offset": "UTC -06:00",
+        "timezone": "America/Mexico_City",
         "country": "Mexico",
         "code": "MX"
     },
@@ -234,8 +211,7 @@
         "mic": "XMUN",
         "open": "08:00:00",
         "close": "22:00:00",
-        "timezone": "Central European Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Berline",
         "country": "Germany",
         "code": "MU"
     },
@@ -244,8 +220,7 @@
         "mic": "XNAS",
         "open": "09:30:00",
         "close": "16:00:00",
-        "timezone": "Eastern Standard Time",
-        "offset": "UTC -05:00",
+        "timezone": "America/New_York",
         "country": "United States",
         "code": "US"
     },
@@ -254,8 +229,7 @@
         "mic": "XCSE",
         "open": "09:00:00",
         "close": "17:00:00",
-        "timezone": "Central European Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Copenhagen",
         "country": "Denmark",
         "code": "CO"
     },
@@ -264,8 +238,7 @@
         "mic": "XHEL",
         "open": "10:00:00",
         "close": "18:30:00",
-        "timezone": "Eastern European Standard Time",
-        "offset": "UTC +02:00",
+        "timezone": "Europe/Helsinki",
         "country": "Finland",
         "code": "HE"
     },
@@ -274,8 +247,7 @@
         "mic": "XSTO",
         "open": "09:00:00",
         "close": "17:30:00",
-        "timezone": "Central Europe Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Stockholm",
         "country": "Sweden",
         "code": "ST"
     },
@@ -284,8 +256,7 @@
         "mic": "XNSE",
         "open": "09:15:00",
         "close": "15:30:00",
-        "timezone": "India Standard Time",
-        "offset": "UTC +05:30",
+        "timezone": "Asia/Kolkata",
         "country": "India",
         "code": "NSE"
     },
@@ -294,8 +265,7 @@
         "mic": "NEOE",
         "open": "09:30:00",
         "close": "16:00:00",
-        "timezone": "Eastern Standard Time",
-        "offset": "UTC -05:00",
+        "timezone": "America/Toronto",
         "country": "Canada",
         "code": "NEO"
     },
@@ -304,8 +274,7 @@
         "mic": "XNSA",
         "open": "10:00:00",
         "close": "14:20:00",
-        "timezone": "West Africa Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Africa/Lagos",
         "country": "Nigeria",
         "code": "XNSA"
     },
@@ -314,8 +283,7 @@
         "mic": "NILX",
         "open": "10:00:00",
         "close": "14:15:00",
-        "timezone": "Eastern European Standard Time",
-        "offset": "UTC +02:00",
+        "timezone": "Africa/Cairo",
         "country": "Egypt",
         "code": "EGX"
     },
@@ -324,8 +292,7 @@
         "mic": "XKAR",
         "open": "09:33:00",
         "close": "15:30:00",
-        "timezone": "Pakistan Standard Time",
-        "offset": "UTC +05:00",
+        "timezone": "Asia/Karachi",
         "country": "Pakistan",
         "code": "KAR"
     },
@@ -334,8 +301,7 @@
         "mic": "XPHS",
         "open": "09:30:00",
         "close": "12:00:00",
-        "timezone": "Malay Peninsula Standard Time",
-        "offset": "UTC +08:00",
+        "timezone": "Asia/Manila",
         "country": "Philippines",
         "code": "PSE"
     },
@@ -344,8 +310,7 @@
         "mic": "XPRA",
         "open": "09:00:00",
         "close": "16:10:00",
-        "timezone": "Central European Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Prague",
         "country": "Czechia",
         "code": "PR"
     },
@@ -354,8 +319,7 @@
         "mic": "XSGO",
         "open": "09:30:00",
         "close": "17:00:00",
-        "timezone": "Chile Time",
-        "offset": "UTC -04:00",
+        "timezone": "America/Santiago",
         "country": "Chile",
         "code": "SN"
     },
@@ -364,8 +328,7 @@
         "mic": "XSAU",
         "open": "10:00:00",
         "close": "15:00:00",
-        "timezone": "Arabian Standard Time",
-        "offset": "UTC +03:00",
+        "timezone": "Asia/Riyadh",
         "country": "Saudi Arabia",
         "code": "SR"
     },
@@ -374,8 +337,7 @@
         "mic": "XSHG",
         "open": "09:15:00",
         "close": "11:30:00",
-        "timezone": "China Standard Time",
-        "offset": "UTC +08:00",
+        "timezone": "Asia/Shanghai",
         "country": "China",
         "code": "SHG"
     },
@@ -384,8 +346,7 @@
         "mic": "XSHE",
         "open": "09:15:00",
         "close": "11:30:00",
-        "timezone": "China Standard Time",
-        "offset": "UTC +08:00",
+        "timezone": "Asia/Shanghai",
         "country": "China",
         "code": "SHE"
     },
@@ -394,8 +355,7 @@
         "mic": "XSWX",
         "open": "09:00:00",
         "close": "17:20:00",
-        "timezone": "Central Europe Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Zurich",
         "country": "Switzerland",
         "code": "SW"
     },
@@ -404,8 +364,7 @@
         "mic": "XBKK",
         "open": "10:00:00",
         "close": "12:30:00",
-        "timezone": "Indochina Time",
-        "offset": "UTC +07:00",
+        "timezone": "Asia/Bangkok",
         "country": "Thailand",
         "code": "BK"
     },
@@ -414,8 +373,7 @@
         "mic": "XSTU",
         "open": "08:00:00",
         "close": "22:00:00",
-        "timezone": "Central European Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Berlin",
         "country": "Germany",
         "code": "STU"
     },
@@ -424,8 +382,7 @@
         "mic": "XTAI",
         "open": "09:00:00",
         "close": "17:30:00",
-        "timezone": "Taipei Standard Time",
-        "offset": "UTC +08:00",
+        "timezone": "Asia/Taipei",
         "country": "Taiwan, Province of China",
         "code": "TW"
     },
@@ -434,8 +391,7 @@
         "mic": "XTAE",
         "open": "09:59:00",
         "close": "15:50:00",
-        "timezone": "Israel Standard Time",
-        "offset": "UTC +02:00",
+        "timezone": "Asia/Jerusalem",
         "country": "Israel",
         "code": "TA"
     },
@@ -444,8 +400,7 @@
         "mic": "XTSE",
         "open": "09:30:00",
         "close": "16:00:00",
-        "timezone": "Eastern Standard Time",
-        "offset": "UTC -05:00",
+        "timezone": "America/Toronto",
         "country": "Canada",
         "code": "TO"
     },
@@ -454,8 +409,7 @@
         "mic": "XTSX",
         "open": "09:30:00",
         "close": "16:00:00",
-        "timezone": "Eastern Standard Time",
-        "offset": "UTC -05:00",
+        "timezone": "America/Toronto",
         "country": "Canada",
         "code": "V"
     },
@@ -464,8 +418,7 @@
         "mic": "XWBO",
         "open": "09:00:00",
         "close": "17:30:00",
-        "timezone": "Central Europe Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Vienna",
         "country": "Austria",
         "code": "VI"
     },
@@ -474,8 +427,7 @@
         "mic": "XWAR",
         "open": "09:00:00",
         "close": "16:50:00",
-        "timezone": "Central Europe Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Warsaw",
         "country": "Poland",
         "code": "WAR"
     },
@@ -484,8 +436,7 @@
         "mic": "XETR",
         "open": "09:00:00",
         "close": "17:30:00",
-        "timezone": "Central European Standard Time",
-        "offset": "UTC +01:00",
+        "timezone": "Europe/Berlin",
         "country": "Germany",
         "code": "XETRA"
     }
