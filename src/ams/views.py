@@ -1,23 +1,19 @@
 import logging
 import os
 
-
 import requests
-from rest_framework.decorators import action
-
-from ams import models, serializers
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from ams import models, serializers
+from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance
+from ams.services.stock_balance_service import update_stock_balance
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
-
-from ams.services.stock_balance_service import update_stock_balance
-
-from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -31,7 +27,12 @@ class AccountViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        account = serializer.save()
+        models.AccountPreferences.objects.create(
+            account=account,
+            base_currency='PLN',
+            tax_currency='PLN',
+        )
         logging.info("Account created")
         return Response({"msg": "Account created"}, status=status.HTTP_201_CREATED)
 
