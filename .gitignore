@@ -60,4 +60,5 @@ terraform.rc
 deployment/
 
 Pipfile.lock
+celerybeat-schedule
 
