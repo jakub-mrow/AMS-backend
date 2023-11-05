@@ -1,0 +1,830 @@
+[
+    {
+        "name": "A2X Markets",
+        "mic": "A2XX",
+        "open": "09:00:00",
+        "close": "17:00:00",
+        "timezone": "South Africa Standard Time",
+        "offset": "UTC +02:00",
+        "country": "South Africa"
+    },
+    {
+        "name": "Abu Dhabi Securities Exchange (ADX)",
+        "mic": "XADS",
+        "open": "10:00:00",
+        "close": "14:44:00",
+        "timezone": "Gulf Standard Time",
+        "offset": "UTC +04:00",
+        "country": "United Arab Emirates"
+    },
+    {
+        "name": "Aquis Exchange (AQSE)",
+        "mic": "NEXX",
+        "open": "08:00:00",
+        "close": "16:35:00",
+        "timezone": "Greenwich Mean Time",
+        "offset": "UTC +00:00",
+        "country": "United Kingdom"
+    },
+    {
+        "name": "Aquis Exchange (UK)",
+        "mic": "AQXE",
+        "open": "08:00:00",
+        "close": "16:35:00",
+        "timezone": "Greenwich Mean Time",
+        "offset": "UTC +00:00",
+        "country": "United Kingdom"
+    },
+    {
+        "name": "Aquis Matching Pool (AMP) (UK)",
+        "mic": "XUBS (for UK)",
+        "open": "08:00:00",
+        "close": "16:35:00",
+        "timezone": "Greenwich Mean Time",
+        "offset": "UTC +00:00",
+        "country": "United Kingdom"
+    },
+    {
+        "name": "Athens Stock Exchange (ATHEX)",
+        "mic": "ASEX",
+        "open": "10:15:00",
+        "close": "17:20:00",
+        "timezone": "Eastern European Standard Time",
+        "offset": "UTC +02:00",
+        "country": "Greece"
+    },
+    {
+        "name": "Australian Securities Exchange (ASX)",
+        "mic": "XASX",
+        "open": "10:00:00",
+        "close": "16:00:00",
+        "timezone": "AUS Eastern Standard Time",
+        "offset": "UTC +10:00",
+        "country": "Australia"
+    },
+    {
+        "name": "B3",
+        "mic": "BVMF",
+        "open": "10:00:00",
+        "close": "17:00:00",
+        "timezone": "Brasilia Standard Time",
+        "offset": "UTC -03:00",
+        "country": "Brazil"
+    },
+    {
+        "name": "BlockMatch (UK)",
+        "mic": "XIEL (for UK)",
+        "open": "08:00:00",
+        "close": "16:35:00",
+        "timezone": "Greenwich Mean Time",
+        "offset": "UTC +00:00",
+        "country": "United Kingdom"
+    },
+    {
+        "name": "Bombay Stock Exchange (BSE)",
+        "mic": "XBOM",
+        "open": "09:15:00",
+        "close": "15:30:00",
+        "timezone": "India Standard Time",
+        "offset": "UTC +05:30",
+        "country": "India"
+    },
+    {
+        "name": "Borsa Istanbul",
+        "mic": "XIST",
+        "open": "10:00:00",
+        "close": "18:00:00",
+        "timezone": "Turkey Time",
+        "offset": "UTC +03:00",
+        "country": "Turkey"
+    },
+    {
+        "name": "Boursa Kuwait",
+        "mic": "XKUW",
+        "open": "09:00:00",
+        "close": "12:30:00",
+        "timezone": "Arabian Standard Time",
+        "offset": "UTC +03:00",
+        "country": "Kuwait"
+    },
+    {
+        "name": "Budapest Stock Exchange (BSE)",
+        "mic": "XBUD",
+        "open": "09:00:00",
+        "close": "17:00:00",
+        "timezone": "Central European Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Hungary"
+    },
+    {
+        "name": "Buenos Aires Stock Exchange (Bolsa De Comercio De Buenos Aires)",
+        "mic": "XBUE",
+        "open": "11:00:00",
+        "close": "17:00:00",
+        "timezone": "Argentina Standard Time",
+        "offset": "UTC -03:00",
+        "country": "Argentina"
+    },
+    {
+        "name": "Bursa Malaysia",
+        "mic": "XKLS",
+        "open": "09:00:00",
+        "close": "12:30:00",
+        "timezone": "Malaysia Time",
+        "offset": "UTC +08:00",
+        "country": "Malaysia"
+    },
+    {
+        "name": "BX Swiss",
+        "mic": "XBRN",
+        "open": "09:00:00",
+        "close": "17:30:00",
+        "timezone": "Central Europe Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Switzerland"
+    },
+    {
+        "name": "Canadian Securities Exchange (CSE)",
+        "mic": "XCNQ",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "Canada"
+    },
+    {
+        "name": "Cboe (US)",
+        "mic": "XCBO",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "United States"
+    },
+    {
+        "name": "Cboe Matchnow",
+        "mic": "MATN",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "Canada"
+    },
+    {
+        "name": "Chi-X Japan",
+        "mic": "CHIJ",
+        "open": "08:00:00",
+        "close": "11:30:00",
+        "timezone": "Japan Standard Time",
+        "offset": "UTC +09:00",
+        "country": "Japan"
+    },
+    {
+        "name": "Colombia Securities Exchange (Bolsa de Valores de Colombia)",
+        "mic": "XBOG",
+        "open": "09:30:00",
+        "close": "15:55:00",
+        "timezone": "Colombia Standard Time",
+        "offset": "UTC -05:00",
+        "country": "Colombia"
+    },
+    {
+        "name": "Dubai Financial Market (DFM)",
+        "mic": "XDFM",
+        "open": "10:00:00",
+        "close": "14:45:00",
+        "timezone": "Gulf Standard Time",
+        "offset": "UTC +04:00",
+        "country": "United Arab Emirates"
+    },
+    {
+        "name": "Dusseldorf Stock Exchange (Borse Dusseldorf)",
+        "mic": "XDUS",
+        "open": "08:00:00",
+        "close": "22:00:00",
+        "timezone": "Central European Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Germany"
+    },
+    {
+        "name": "Egyptian Exchange (EGX)",
+        "mic": "XCAI",
+        "open": "10:00:00",
+        "close": "14:15:00",
+        "timezone": "Eastern European Standard Time",
+        "offset": "UTC +02:00",
+        "country": "Egypt"
+    },
+    {
+        "name": "Euronext Amsterdam",
+        "mic": "XAMS",
+        "open": "09:00:00",
+        "close": "17:40:00",
+        "timezone": "Central Europe Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Netherlands"
+    },
+    {
+        "name": "Euronext Brussels",
+        "mic": "XBRU",
+        "open": "09:00:00",
+        "close": "17:40:00",
+        "timezone": "Central Europe Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Belgium"
+    },
+    {
+        "name": "Euronext Dublin",
+        "mic": "XDUB",
+        "open": "09:00:00",
+        "close": "17:40:00",
+        "timezone": "Central European Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Ireland"
+    },
+    {
+        "name": "Euronext Lisbon",
+        "mic": "XLIS",
+        "open": "09:00:00",
+        "close": "17:40:00",
+        "timezone": "Western European Standard Time",
+        "offset": "UTC +00:00",
+        "country": "Portugal"
+    },
+    {
+        "name": "Euronext Oslo (Oslo Bors)",
+        "mic": "XOSL",
+        "open": "09:00:00",
+        "close": "17:40:00",
+        "timezone": "Central Europe Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Norway"
+    },
+    {
+        "name": "Euronext Paris (Paris Borse)",
+        "mic": "XPAR",
+        "open": "09:00:00",
+        "close": "17:40:00",
+        "timezone": "Central European Standard Time",
+        "offset": "UTC +01:00",
+        "country": "France"
+    },
+    {
+        "name": "Frankfurt Stock Exchange (Borse Frankfurt)",
+        "mic": "XFRA",
+        "open": "09:00:00",
+        "close": "17:30:00",
+        "timezone": "Central European Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Germany"
+    },
+    {
+        "name": "Fukuoka Stock Exchange",
+        "mic": "XFKA",
+        "open": "09:00:00",
+        "close": "11:30:00",
+        "timezone": "Japan Standard Time",
+        "offset": "UTC +09:00",
+        "country": "Japan"
+    },
+    {
+        "name": "Hamburg Stock Exchange (Borse Hamburg)",
+        "mic": "XHAM",
+        "open": "08:00:00",
+        "close": "22:00:00",
+        "timezone": "Central European Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Germany"
+    },
+    {
+        "name": "Hong Kong Stock Exchange (HKEX)",
+        "mic": "XHKG",
+        "open": "09:30:00",
+        "close": "16:10:00",
+        "timezone": "Hong Kong Standard Time",
+        "offset": "UTC +08:00",
+        "country": "Hong Kong"
+    },
+    {
+        "name": "IEX Investors Exchange",
+        "mic": "IEXG",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "United States"
+    },
+    {
+        "name": "Indonesia Stock Exchange (IDX)",
+        "mic": "XIDX",
+        "open": "09:30:00",
+        "close": "11:30:00",
+        "timezone": "Western Indonesia Time",
+        "offset": "UTC +07:00",
+        "country": "Indonesia"
+    },
+    {
+        "name": "Institutional Stock Exchange (Bolsa Institucional de Valores) (BIVA)",
+        "mic": "BIVA",
+        "open": "08:30:00",
+        "close": "15:00:00",
+        "timezone": "Central Standard Time (Mexico)",
+        "offset": "UTC -06:00",
+        "country": "Mexico"
+    },
+    {
+        "name": "Italian Stock Exchange (Borsa Italiana)",
+        "mic": "XMIL",
+        "open": "09:00:00",
+        "close": "17:35:00",
+        "timezone": "Central European Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Italy"
+    },
+    {
+        "name": "Japannext (JNX)",
+        "mic": "SBIJ",
+        "open": "09:00:00",
+        "close": "11:30:00",
+        "timezone": "Japan Standard Time",
+        "offset": "UTC +09:00",
+        "country": "Japan"
+    },
+    {
+        "name": "Johannesburg Stock Exchange (JSE)",
+        "mic": "XJSE",
+        "open": "09:00:00",
+        "close": "17:00:00",
+        "timezone": "South Africa Standard Time",
+        "offset": "UTC +02:00",
+        "country": "South Africa"
+    },
+    {
+        "name": "Korea Exchange (KRX)",
+        "mic": "XKRX",
+        "open": "09:00:00",
+        "close": "15:30:00",
+        "timezone": "Korean Standard Time",
+        "offset": "UTC +09:00",
+        "country": "Korea, Republic of"
+    },
+    {
+        "name": "Lima Stock Exchange (Bolsa de Valores de Lima) (BVL)",
+        "mic": "XLIM",
+        "open": "09:30:00",
+        "close": "15:52:00",
+        "timezone": "Peru Standard Time",
+        "offset": "UTC -05:00",
+        "country": "Peru"
+    },
+    {
+        "name": "Liquidnet (UK)",
+        "mic": "LIQU",
+        "open": "08:00:00",
+        "close": "16:35:00",
+        "timezone": "Greenwich Mean Time",
+        "offset": "UTC +00:00",
+        "country": "United Kingdom"
+    },
+    {
+        "name": "London Stock Exchange (LSE)",
+        "mic": "XLON",
+        "open": "08:00:00",
+        "close": "16:35:00",
+        "timezone": "Greenwich Mean Time",
+        "offset": "UTC +00:00",
+        "country": "United Kingdom"
+    },
+    {
+        "name": "Long-Term Stock Exchange (LTSE)",
+        "mic": "LTSE",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "United States"
+    },
+    {
+        "name": "Members Exchange (MEMX)",
+        "mic": "MEMX",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "United States"
+    },
+    {
+        "name": "Mexican Stock Exchange (Bolsa Mexicana de Valores) (BMV)",
+        "mic": "XMEX",
+        "open": "08:30:00",
+        "close": "15:00:00",
+        "timezone": "Central Standard Time (Mexico)",
+        "offset": "UTC -06:00",
+        "country": "Mexico"
+    },
+    {
+        "name": "Montreal Exchange",
+        "mic": "XMOD",
+        "open": "09:35:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "Canada"
+    },
+    {
+        "name": "Moscow Exchange (MOEX)",
+        "mic": "MISX",
+        "open": "06:50:00",
+        "close": "23:50:00",
+        "timezone": "Moscow Standard Time",
+        "offset": "UTC +03:00",
+        "country": "Russian Federation"
+    },
+    {
+        "name": "Munich Stock Exchange (Borse Munchen)",
+        "mic": "XMUN",
+        "open": "08:00:00",
+        "close": "22:00:00",
+        "timezone": "Central European Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Germany"
+    },
+    {
+        "name": "Muscat Stock Exchange",
+        "mic": "XMUS",
+        "open": "10:00:00",
+        "close": "14:00:00",
+        "timezone": "Gulf Standard Time",
+        "offset": "UTC +03:00",
+        "country": "Oman"
+    },
+    {
+        "name": "Nagoya Stock Exchange (NSE)",
+        "mic": "XNGO",
+        "open": "09:00:00",
+        "close": "11:30:00",
+        "timezone": "Japan Standard Time",
+        "offset": "UTC +09:00",
+        "country": "Japan"
+    },
+    {
+        "name": "Nasdaq",
+        "mic": "XNAS",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "United States"
+    },
+    {
+        "name": "Nasdaq Canada",
+        "mic": "XCXD",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "Canada"
+    },
+    {
+        "name": "Nasdaq Copenhagen",
+        "mic": "XCSE",
+        "open": "09:00:00",
+        "close": "17:00:00",
+        "timezone": "Central European Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Denmark"
+    },
+    {
+        "name": "Nasdaq Dubai",
+        "mic": "DIFX",
+        "open": "10:00:00",
+        "close": "14:45:00",
+        "timezone": "Gulf Standard Time",
+        "offset": "UTC +04:00",
+        "country": "United Arab Emirates"
+    },
+    {
+        "name": "Nasdaq Helsinki",
+        "mic": "XHEL",
+        "open": "10:00:00",
+        "close": "18:30:00",
+        "timezone": "Eastern European Standard Time",
+        "offset": "UTC +02:00",
+        "country": "Finland"
+    },
+    {
+        "name": "Nasdaq Stockholm",
+        "mic": "XSTO",
+        "open": "09:00:00",
+        "close": "17:30:00",
+        "timezone": "Central Europe Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Sweden"
+    },
+    {
+        "name": "National Stock Exchange of India (NSE)",
+        "mic": "XNSE",
+        "open": "09:15:00",
+        "close": "15:30:00",
+        "timezone": "India Standard Time",
+        "offset": "UTC +05:30",
+        "country": "India"
+    },
+    {
+        "name": "Neo Exchange",
+        "mic": "NEOE",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "Canada"
+    },
+    {
+        "name": "NYSE American",
+        "mic": "XNYS (XNYS)",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "United States"
+    },
+    {
+        "name": "New Zealand Stock Exchange NZX)",
+        "mic": "XNZE",
+        "open": "10:00:00",
+        "close": "16:45:00",
+        "timezone": "New Zealand Standard Time",
+        "offset": "UTC +12:00",
+        "country": "New Zealand"
+    },
+    {
+        "name": "Nigerian Stock Exchange (NSX)",
+        "mic": "XNSA",
+        "open": "10:00:00",
+        "close": "14:20:00",
+        "timezone": "West Africa Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Nigeria"
+    },
+    {
+        "name": "Nile Stock Exchange (NILEX)",
+        "mic": "NILX",
+        "open": "10:00:00",
+        "close": "14:15:00",
+        "timezone": "Eastern European Standard Time",
+        "offset": "UTC +02:00",
+        "country": "Egypt"
+    },
+    {
+        "name": "NYSE American",
+        "mic": "XNYS (XNYS)",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "United States"
+    },
+    {
+        "name": "Pakistan Stock Exchange (PSX)",
+        "mic": "XKAR",
+        "open": "09:33:00",
+        "close": "15:30:00",
+        "timezone": "Pakistan Standard Time",
+        "offset": "UTC +05:00",
+        "country": "Pakistan"
+    },
+    {
+        "name": "Philippine Stock Exchange",
+        "mic": "XPHS",
+        "open": "09:30:00",
+        "close": "12:00:00",
+        "timezone": "Malay Peninsula Standard Time",
+        "offset": "UTC +08:00",
+        "country": "Philippines"
+    },
+    {
+        "name": "Prague Stock Exchange (PSE)",
+        "mic": "XPRA",
+        "open": "09:00:00",
+        "close": "16:10:00",
+        "timezone": "Central European Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Czechia"
+    },
+    {
+        "name": "Qatar Stock Exchange (QSE)",
+        "mic": "DSMD",
+        "open": "09:30:00",
+        "close": "13:15:00",
+        "timezone": "Arabian Standard Time",
+        "offset": "UTC +03:00",
+        "country": "Qatar"
+    },
+    {
+        "name": "RM-SYSTEM Czech Stock Exchange",
+        "mic": "XRMZ",
+        "open": "09:00:00",
+        "close": "17:00:00",
+        "timezone": "Central European Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Czechia"
+    },
+    {
+        "name": "Saint Petersburg Stock Exchange (SPB Exchange)",
+        "mic": "XPET",
+        "open": "07:00:00",
+        "close": "02:00:00",
+        "timezone": "Moscow Standard Time",
+        "offset": "UTC +03:00",
+        "country": "Russian Federation"
+    },
+    {
+        "name": "Santiago Stock Exchange (Bolsa de Santiago) (SSE)",
+        "mic": "XSGO",
+        "open": "09:30:00",
+        "close": "17:00:00",
+        "timezone": "Chile Time",
+        "offset": "UTC -04:00",
+        "country": "Chile"
+    },
+    {
+        "name": "Sapporo Securities Exchange (XSAP)",
+        "mic": "XSAP",
+        "open": "09:00:00",
+        "close": "11:30:00",
+        "timezone": "Japan Standard Time",
+        "offset": "UTC +09:00",
+        "country": "Japan"
+    },
+    {
+        "name": "Saudi Stock Exchange (Tadawul)",
+        "mic": "XSAU",
+        "open": "10:00:00",
+        "close": "15:00:00",
+        "timezone": "Arabian Standard Time",
+        "offset": "UTC +03:00",
+        "country": "Saudi Arabia"
+    },
+    {
+        "name": "Shanghai Stock Exchange (SSE)",
+        "mic": "XSHG",
+        "open": "09:15:00",
+        "close": "11:30:00",
+        "timezone": "China Standard Time",
+        "offset": "UTC +08:00",
+        "country": "China"
+    },
+    {
+        "name": "Shenzhen Stock Exchange (SZSE)",
+        "mic": "XSHE",
+        "open": "09:15:00",
+        "close": "11:30:00",
+        "timezone": "China Standard Time",
+        "offset": "UTC +08:00",
+        "country": "China"
+    },
+    {
+        "name": "Singapore Exchange (SGX)",
+        "mic": "XSES",
+        "open": "09:00:00",
+        "close": "12:00:00",
+        "timezone": "Malay Peninsula Standard Time",
+        "offset": "UTC +08:00",
+        "country": "Singapore"
+    },
+    {
+        "name": "SIX Swiss Exchange",
+        "mic": "XSWX",
+        "open": "09:00:00",
+        "close": "17:20:00",
+        "timezone": "Central Europe Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Switzerland"
+    },
+    {
+        "name": "Stock Exchange of Thailand (SET)",
+        "mic": "XBKK",
+        "open": "10:00:00",
+        "close": "12:30:00",
+        "timezone": "Indochina Time",
+        "offset": "UTC +07:00",
+        "country": "Thailand"
+    },
+    {
+        "name": "Stuttgart Stock Exchange (Borse Stuttgart)",
+        "mic": "XSTU",
+        "open": "08:00:00",
+        "close": "22:00:00",
+        "timezone": "Central European Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Germany"
+    },
+    {
+        "name": "Taiwan Stock Exchange (TWSE)",
+        "mic": "XTAI",
+        "open": "09:00:00",
+        "close": "17:30:00",
+        "timezone": "Taipei Standard Time",
+        "offset": "UTC +08:00",
+        "country": "Taiwan, Province of China"
+    },
+    {
+        "name": "Tel-Aviv Stock Exchange (TASE)",
+        "mic": "XTAE",
+        "open": "09:59:00",
+        "close": "15:50:00",
+        "timezone": "Israel Standard Time",
+        "offset": "UTC +02:00",
+        "country": "Israel"
+    },
+    {
+        "name": "Tokyo Stock Exchange (TSE/TYO)",
+        "mic": "XJPX",
+        "open": "09:00:00",
+        "close": "11:30:00",
+        "timezone": "Japan Standard Time",
+        "offset": "UTC +09:00",
+        "country": "Japan"
+    },
+    {
+        "name": "Toronto Stock Exchange (TSX)",
+        "mic": "XTSE",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "Canada"
+    },
+    {
+        "name": "TSX Venture Exchange",
+        "mic": "XTSX",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "Eastern Standard Time",
+        "offset": "UTC -05:00",
+        "country": "Canada"
+    },
+    {
+        "name": "Vienna Stock Exchange (Wiener Borse)",
+        "mic": "XWBO",
+        "open": "09:00:00",
+        "close": "17:30:00",
+        "timezone": "Central Europe Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Austria"
+    },
+    {
+        "name": "Virtu Financial (UK)",
+        "mic": "VIUK",
+        "open": "08:00:00",
+        "close": "16:35:00",
+        "timezone": "Greenwich Mean Time",
+        "offset": "UTC +00:00",
+        "country": "United Kingdom"
+    },
+    {
+        "name": "Warsaw Stock Exchange (GPW)",
+        "mic": "XWAR",
+        "open": "09:00:00",
+        "close": "16:50:00",
+        "timezone": "Central Europe Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Poland"
+    },
+    {
+        "name": "Xetra",
+        "mic": "XETR",
+        "open": "09:00:00",
+        "close": "17:30:00",
+        "timezone": "Central European Standard Time",
+        "offset": "UTC +01:00",
+        "country": "Germany"
+    },
+    {
+        "name":"Madrid Stock Exchange (Bolsa de Madrid, SIBE)",
+        "mic":"XMAD",
+        "open":"09:00:00",
+        "close":"17:35:00",
+        "timezone":"Central Europe Standard Time",
+        "offset":"UTC +01:00",
+        "country": "Spain"
+     },
+     {
+        "name":"Cboe (Australia)",
+        "mic":"CXAP",
+        "open":"10:00:00",
+        "close":"16:13:00",
+        "timezone":"AUS Eastern Standard Time",
+        "offset":"UTC +10:00",
+        "country": "Australia"
+     },
+     {
+        "name":"Miami International Securities Exchange (MIAX)",
+        "mic":"XMIO",
+        "open":"09:30:00",
+        "close":"16:00:00",
+        "timezone":"Eastern Standard Time",
+        "offset":"UTC -05:00",
+        "country": "United States"
+     }
+]
