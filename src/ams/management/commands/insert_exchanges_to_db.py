@@ -19,7 +19,7 @@ class Command(BaseCommand):
                         mic=entry['mic'].split(' ')[0],
                         defaults={
                             'country': entry['country'],
-                            'code': entry['mic'].split(' ')[0],
+                            'code': entry['code'],
                             'timezone': entry['timezone'],
                             'opening_hour': parse_time(entry['open']),
                             'closing_hour': parse_time(entry['close'])
