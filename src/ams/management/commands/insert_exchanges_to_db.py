@@ -22,7 +22,7 @@ class Command(BaseCommand):
                         defaults={
                             'country': entry['country'],
                             'code': entry['mic'].split(' ')[0],
-                            'timezone': entry['offset'],
+                            'timezone': entry['timezone'],
                             'opening_hour': parse_time(entry['open']),
                             'closing_hour': parse_time(entry['close'])
                         }
