@@ -13,9 +13,7 @@ class Command(BaseCommand):
         try:
             with open('/code/src/ams/data/exchanges.json', 'r', encoding='utf-8') as file:
                 data = json.load(file)
-                # print(data)
                 for entry in data:
-                    print(entry)
                     exchange, created = Exchange.objects.update_or_create(
                         name=entry['name'],
                         mic=entry['mic'].split(' ')[0],
