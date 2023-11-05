@@ -10,9 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
-
 from datetime import timedelta
 from pathlib import Path
+
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -189,3 +190,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CELERY_BROKER_URL = "redis://redis:6379/0"
 CELERY_RESULT_BACKEND = "redis://redis:6379/0"
+CELERY_BEAT_SCHEDULE = {
+    'update-stock-price': {
+        'task': 'ams.tasks.update_stock_price_task',
+        'schedule': crontab(minute='0'),
+    },
+}
+
+EOD_TOKEN = os.getenv('EOD_TOKEN')
+EOD_API_URL = "https://eodhd.com/api"
