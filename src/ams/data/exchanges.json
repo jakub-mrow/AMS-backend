@@ -1,0 +1,443 @@
+[
+    {
+        "name": "Athens Stock Exchange (ATHEX)",
+        "mic": "ASEX",
+        "open": "10:15:00",
+        "close": "17:20:00",
+        "timezone": "Europe/Athens",
+        "country": "Greece",
+        "code": "AT"
+    },
+    {
+        "name": "Australian Securities Exchange (ASX)",
+        "mic": "XASX",
+        "open": "10:00:00",
+        "close": "16:00:00",
+        "timezone": "Australia/Sydney",
+        "country": "Australia",
+        "code": "AU"
+    },
+    {
+        "name": "B3",
+        "mic": "BVMF",
+        "open": "10:00:00",
+        "close": "17:00:00",
+        "timezone": "America/Sao_Paulo",
+        "country": "Brazil",
+        "code": "SA"
+    },
+    {
+        "name": "Borsa Istanbul",
+        "mic": "XIST",
+        "open": "10:00:00",
+        "close": "18:00:00",
+        "timezone": "Europe/Istanbul",
+        "country": "Turkey",
+        "code": "IS"
+    },
+    {
+        "name": "Budapest Stock Exchange (BSE)",
+        "mic": "XBUD",
+        "open": "09:00:00",
+        "close": "17:00:00",
+        "timezone": "Europe/Budapest",
+        "country": "Hungary",
+        "code": "BUD"
+    },
+    {
+        "name": "Buenos Aires Stock Exchange (Bolsa De Comercio De Buenos Aires)",
+        "mic": "XBUE",
+        "open": "11:00:00",
+        "close": "17:00:00",
+        "timezone": "America/Argentina/Buenos_Aires",
+        "country": "Argentina",
+        "code": "BA"
+    },
+    {
+        "name": "Bursa Malaysia",
+        "mic": "XKLS",
+        "open": "09:00:00",
+        "close": "12:30:00",
+        "timezone": "Asia/Kuala_Lumpur",
+        "country": "Malaysia",
+        "code": "KLSE"
+    },
+    {
+        "name": "Dusseldorf Stock Exchange (Borse Dusseldorf)",
+        "mic": "XDUS",
+        "open": "08:00:00",
+        "close": "22:00:00",
+        "timezone": "Europe/Berlin",
+        "country": "Germany",
+        "code": "DU"
+    },
+    {
+        "name": "Euronext Amsterdam",
+        "mic": "XAMS",
+        "open": "09:00:00",
+        "close": "17:40:00",
+        "timezone": "Europe/Amsterdam",
+        "country": "Netherlands",
+        "code": "AS"
+    },
+    {
+        "name": "Euronext Brussels",
+        "mic": "XBRU",
+        "open": "09:00:00",
+        "close": "17:40:00",
+        "timezone": "Europe/Brussels",
+        "country": "Belgium",
+        "code": "BR"
+    },
+    {
+        "name": "Euronext Dublin",
+        "mic": "XDUB",
+        "open": "09:00:00",
+        "close": "17:40:00",
+        "timezone": "Europe/Dublin",
+        "country": "Ireland",
+        "code": "IR"
+    },
+    {
+        "name": "Euronext Lisbon",
+        "mic": "XLIS",
+        "open": "09:00:00",
+        "close": "17:40:00",
+        "timezone": "Europe/Lisbon",
+        "country": "Portugal",
+        "code": "LS"
+    },
+    {
+        "name": "Euronext Oslo (Oslo Bors)",
+        "mic": "XOSL",
+        "open": "09:00:00",
+        "close": "17:40:00",
+        "timezone": "Europe/Oslo",
+        "country": "Norway",
+        "code": "OL"
+    },
+    {
+        "name": "Euronext Paris (Paris Borse)",
+        "mic": "XPAR",
+        "open": "09:00:00",
+        "close": "17:40:00",
+        "timezone": "Europe/Paris",
+        "country": "France",
+        "code": "PA"
+    },
+    {
+        "name": "Frankfurt Stock Exchange (Borse Frankfurt)",
+        "mic": "XFRA",
+        "open": "09:00:00",
+        "close": "17:30:00",
+        "timezone": "Europe/Berlin",
+        "country": "Germany",
+        "code": "F"
+    },
+    {
+        "name": "Hamburg Stock Exchange (Borse Hamburg)",
+        "mic": "XHAM",
+        "open": "08:00:00",
+        "close": "22:00:00",
+        "timezone": "Europe/Berlin",
+        "country": "Germany",
+        "code": "HM"
+    },
+    {
+        "name": "Indonesia Stock Exchange (IDX)",
+        "mic": "XIDX",
+        "open": "09:30:00",
+        "close": "11:30:00",
+        "timezone": "Asia/Jakarta",
+        "country": "Indonesia",
+        "code": "JK"
+    },
+    {
+        "name": "Johannesburg Stock Exchange (JSE)",
+        "mic": "XJSE",
+        "open": "09:00:00",
+        "close": "17:00:00",
+        "timezone": "Africa/Johannesburg",
+        "country": "South Africa",
+        "code": "JSE"
+    },
+    {
+        "name": "Korea Exchange (KRX)",
+        "mic": "XKRX",
+        "open": "09:00:00",
+        "close": "15:30:00",
+        "timezone": "Asia/Seoul",
+        "country": "Korea, Republic of",
+        "code": "KO"
+    },
+    {
+        "name": "Lima Stock Exchange (Bolsa de Valores de Lima) (BVL)",
+        "mic": "XLIM",
+        "open": "09:30:00",
+        "close": "15:52:00",
+        "timezone": "America/Lima",
+        "country": "Peru",
+        "code": "LIM"
+    },
+    {
+        "name": "London Stock Exchange (LSE)",
+        "mic": "XLON",
+        "open": "08:00:00",
+        "close": "16:35:00",
+        "timezone": "Europe/London",
+        "country": "United Kingdom",
+        "code": "IL"
+    },
+    {
+        "name": "London Stock Exchange (LSE)",
+        "mic": "XLON",
+        "open": "08:00:00",
+        "close": "16:35:00",
+        "timezone": "Europe/London",
+        "country": "United Kingdom",
+        "code": "IL"
+    },
+    {
+        "name": "Mexican Stock Exchange (Bolsa Mexicana de Valores) (BMV)",
+        "mic": "XMEX",
+        "open": "08:30:00",
+        "close": "15:00:00",
+        "timezone": "America/Mexico_City",
+        "country": "Mexico",
+        "code": "MX"
+    },
+    {
+        "name": "Munich Stock Exchange (Borse Munchen)",
+        "mic": "XMUN",
+        "open": "08:00:00",
+        "close": "22:00:00",
+        "timezone": "Europe/Berline",
+        "country": "Germany",
+        "code": "MU"
+    },
+    {
+        "name": "Nasdaq",
+        "mic": "XNAS",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "America/New_York",
+        "country": "United States",
+        "code": "US"
+    },
+    {
+        "name": "Nasdaq Copenhagen",
+        "mic": "XCSE",
+        "open": "09:00:00",
+        "close": "17:00:00",
+        "timezone": "Europe/Copenhagen",
+        "country": "Denmark",
+        "code": "CO"
+    },
+    {
+        "name": "Nasdaq Helsinki",
+        "mic": "XHEL",
+        "open": "10:00:00",
+        "close": "18:30:00",
+        "timezone": "Europe/Helsinki",
+        "country": "Finland",
+        "code": "HE"
+    },
+    {
+        "name": "Nasdaq Stockholm",
+        "mic": "XSTO",
+        "open": "09:00:00",
+        "close": "17:30:00",
+        "timezone": "Europe/Stockholm",
+        "country": "Sweden",
+        "code": "ST"
+    },
+    {
+        "name": "National Stock Exchange of India (NSE)",
+        "mic": "XNSE",
+        "open": "09:15:00",
+        "close": "15:30:00",
+        "timezone": "Asia/Kolkata",
+        "country": "India",
+        "code": "NSE"
+    },
+    {
+        "name": "Neo Exchange",
+        "mic": "NEOE",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "America/Toronto",
+        "country": "Canada",
+        "code": "NEO"
+    },
+    {
+        "name": "Nigerian Stock Exchange (NSX)",
+        "mic": "XNSA",
+        "open": "10:00:00",
+        "close": "14:20:00",
+        "timezone": "Africa/Lagos",
+        "country": "Nigeria",
+        "code": "XNSA"
+    },
+    {
+        "name": "Nile Stock Exchange (NILEX)",
+        "mic": "NILX",
+        "open": "10:00:00",
+        "close": "14:15:00",
+        "timezone": "Africa/Cairo",
+        "country": "Egypt",
+        "code": "EGX"
+    },
+    {
+        "name": "Pakistan Stock Exchange (PSX)",
+        "mic": "XKAR",
+        "open": "09:33:00",
+        "close": "15:30:00",
+        "timezone": "Asia/Karachi",
+        "country": "Pakistan",
+        "code": "KAR"
+    },
+    {
+        "name": "Philippine Stock Exchange",
+        "mic": "XPHS",
+        "open": "09:30:00",
+        "close": "12:00:00",
+        "timezone": "Asia/Manila",
+        "country": "Philippines",
+        "code": "PSE"
+    },
+    {
+        "name": "Prague Stock Exchange (PSE)",
+        "mic": "XPRA",
+        "open": "09:00:00",
+        "close": "16:10:00",
+        "timezone": "Europe/Prague",
+        "country": "Czechia",
+        "code": "PR"
+    },
+    {
+        "name": "Santiago Stock Exchange (Bolsa de Santiago) (SSE)",
+        "mic": "XSGO",
+        "open": "09:30:00",
+        "close": "17:00:00",
+        "timezone": "America/Santiago",
+        "country": "Chile",
+        "code": "SN"
+    },
+    {
+        "name": "Saudi Stock Exchange (Tadawul)",
+        "mic": "XSAU",
+        "open": "10:00:00",
+        "close": "15:00:00",
+        "timezone": "Asia/Riyadh",
+        "country": "Saudi Arabia",
+        "code": "SR"
+    },
+    {
+        "name": "Shanghai Stock Exchange (SSE)",
+        "mic": "XSHG",
+        "open": "09:15:00",
+        "close": "11:30:00",
+        "timezone": "Asia/Shanghai",
+        "country": "China",
+        "code": "SHG"
+    },
+    {
+        "name": "Shenzhen Stock Exchange (SZSE)",
+        "mic": "XSHE",
+        "open": "09:15:00",
+        "close": "11:30:00",
+        "timezone": "Asia/Shanghai",
+        "country": "China",
+        "code": "SHE"
+    },
+    {
+        "name": "SIX Swiss Exchange",
+        "mic": "XSWX",
+        "open": "09:00:00",
+        "close": "17:20:00",
+        "timezone": "Europe/Zurich",
+        "country": "Switzerland",
+        "code": "SW"
+    },
+    {
+        "name": "Stock Exchange of Thailand (SET)",
+        "mic": "XBKK",
+        "open": "10:00:00",
+        "close": "12:30:00",
+        "timezone": "Asia/Bangkok",
+        "country": "Thailand",
+        "code": "BK"
+    },
+    {
+        "name": "Stuttgart Stock Exchange (Borse Stuttgart)",
+        "mic": "XSTU",
+        "open": "08:00:00",
+        "close": "22:00:00",
+        "timezone": "Europe/Berlin",
+        "country": "Germany",
+        "code": "STU"
+    },
+    {
+        "name": "Taiwan Stock Exchange (TWSE)",
+        "mic": "XTAI",
+        "open": "09:00:00",
+        "close": "17:30:00",
+        "timezone": "Asia/Taipei",
+        "country": "Taiwan, Province of China",
+        "code": "TW"
+    },
+    {
+        "name": "Tel-Aviv Stock Exchange (TASE)",
+        "mic": "XTAE",
+        "open": "09:59:00",
+        "close": "15:50:00",
+        "timezone": "Asia/Jerusalem",
+        "country": "Israel",
+        "code": "TA"
+    },
+    {
+        "name": "Toronto Stock Exchange (TSX)",
+        "mic": "XTSE",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "America/Toronto",
+        "country": "Canada",
+        "code": "TO"
+    },
+    {
+        "name": "TSX Venture Exchange",
+        "mic": "XTSX",
+        "open": "09:30:00",
+        "close": "16:00:00",
+        "timezone": "America/Toronto",
+        "country": "Canada",
+        "code": "V"
+    },
+    {
+        "name": "Vienna Stock Exchange (Wiener Borse)",
+        "mic": "XWBO",
+        "open": "09:00:00",
+        "close": "17:30:00",
+        "timezone": "Europe/Vienna",
+        "country": "Austria",
+        "code": "VI"
+    },
+    {
+        "name": "Warsaw Stock Exchange (GPW)",
+        "mic": "XWAR",
+        "open": "09:00:00",
+        "close": "16:50:00",
+        "timezone": "Europe/Warsaw",
+        "country": "Poland",
+        "code": "WAR"
+    },
+    {
+        "name": "Xetra",
+        "mic": "XETR",
+        "open": "09:00:00",
+        "close": "17:30:00",
+        "timezone": "Europe/Berlin",
+        "country": "Germany",
+        "code": "XETRA"
+    }
+]
