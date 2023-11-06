@@ -9,7 +9,7 @@ from ams.services import eod_service
 
 def update_stock_balance(stock_transaction, account):
     stock_balance, created = models.StockBalance.objects.get_or_create(
-        isin=stock_transaction['isin'],
+        isin=stock_transaction.isin,
         account=account,
         defaults={
             'last_transaction_date': datetime.datetime.now(),
@@ -19,16 +19,16 @@ def update_stock_balance(stock_transaction, account):
         }
     )
 
-    if stock_transaction['transaction_type'] == 'buy':
-        stock_balance.quantity += stock_transaction['quantity']
-        stock_balance.value += stock_transaction['quantity'] * stock_transaction['price']
-    elif stock_transaction['transaction_type'] == 'sell':
-        if stock_balance.quantity < stock_transaction['quantity']:
+    if stock_transaction.transaction_type == 'buy':
+        stock_balance.quantity += stock_transaction.quantity
+        stock_balance.value += stock_transaction.quantity * stock_transaction.price
+    elif stock_transaction.transaction_type == 'sell':
+        if stock_balance.quantity < stock_transaction.quantity:
             raise Exception('Not enough stocks to sell.')
-        stock_balance.quantity -= stock_transaction['quantity']
-        stock_balance.value -= stock_transaction['quantity'] * stock_transaction['price']
-    elif stock_transaction['transaction_type'] == 'price':
-        stock_balance.value = stock_transaction['price'] * stock_balance.quantity
+        stock_balance.quantity -= stock_transaction.quantity
+        stock_balance.value -= stock_transaction.quantity * stock_transaction.price
+
+    stock_balance.last_transaction_date = datetime.datetime.now()
 
     stock_balance.last_transaction_date = datetime.datetime.now()
 
