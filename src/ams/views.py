@@ -261,6 +261,17 @@ class StockBalanceViewSet(viewsets.ViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['GET'])
+    def list_dto(self, request, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_balances = models.StockBalance.objects.filter(account=account)
+        serializer = serializers.StockBalanceDtoSerializer(stock_balances, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class StockSearchAPIView(APIView):
     permission_classes = (IsAuthenticated,)
