@@ -1,8 +1,8 @@
 import logging
 
-import requests
 from rest_framework import status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -10,10 +10,11 @@ from rest_framework.views import APIView
 
 from ams import models, serializers
 from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance
-from ams.services.stock_balance_service import update_stock_balance, update_stock_price
-from main.settings import EOD_TOKEN, EOD_API_URL
+from ams.services.stock_balance_service import update_stock_balance
+from ams.services.stock_balance_service import update_stock_price
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
+from .services import stock_balance_service, eod_service
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -245,6 +246,18 @@ class StockTransactionViewSet(viewsets.ViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['POST'])
+    def buy(self, request, account_id):
+        serializer = serializers.BuyCommandSerializer(data=request.data, context={'account_id': account_id})
+        serializer.is_valid(raise_exception=True)
+        buy_command = serializer.save()
+        try:
+            stock_balance_service.buy_stocks(buy_command)
+        except Exception as e:
+            logger.exception(e)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"msg": "Buy command added"}, status=status.HTTP_201_CREATED)
+
 
 class StockBalanceViewSet(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
@@ -278,13 +291,12 @@ class StockSearchAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         query_string = request.GET['query_string']
-        url = f'{EOD_API_URL}/search/{query_string}?api_token={EOD_TOKEN}'
 
         try:
-            response = requests.get(url, timeout=30.0)
-            data = response.json()
-            return Response(data, status=response.status_code)
+            data = eod_service.search(query_string)
+            return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
+            logger.exception(e)
             return Response({'error': 'Internal Server Error'}, status=500)
 
 @api_view(['POST'])
