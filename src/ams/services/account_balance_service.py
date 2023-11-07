@@ -3,9 +3,9 @@ from ams import models
 
 
 def add_transaction_to_account_balance(transaction, account, account_balance):
-    if transaction.type == 'deposit':
+    if transaction.type == 'deposit' or transaction.type == 'buy':
         account_balance.amount += transaction.amount
-    elif transaction.type == 'withdrawal':
+    elif transaction.type == 'withdrawal' or transaction.type == 'sell':
         account_balance.amount -= transaction.amount
 
     if account.last_transaction_date:
@@ -45,3 +45,28 @@ def rebuild_account_balance(account, transaction_date):
 
     for balance in account_balances:
         balance.save()
+
+
+def add_transaction_from_stock(stock_transaction, stock, account):
+    account_transaction = models.Transaction.objects.create(
+        account_id=stock_transaction.account_id,
+        type=stock_transaction.transaction_type,
+        amount=stock_transaction.quantity * stock_transaction.price,
+        currency=stock.currency,
+        date=stock_transaction.date,
+        account=account,
+        correlation_id=stock_transaction.id
+    )
+    account_transaction.save()
+
+    account_balance = models.AccountBalance.objects.filter(account_id=stock_transaction.account_id,
+                                                           currency=stock.currency).first()
+    if not account_balance:
+        account_balance = models.AccountBalance.objects.create(
+            account_id=stock_transaction.account_id,
+            currency=stock.currency,
+            amount=0
+        )
+        account_balance.save()
+
+    add_transaction_to_account_balance(account_transaction, account, account_balance)
