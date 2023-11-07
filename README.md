@@ -89,3 +89,9 @@ How to add package to pipenv
     ```
    pipenv install "pytest-django==4.5.2"
    ```
+
+### Exchanges
+Load exchanges into database
+```
+docker-compose exec django python manage.py insert_exchanges_to_db
+```

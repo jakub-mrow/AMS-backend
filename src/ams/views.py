@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 import requests
@@ -242,7 +243,12 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+        isin = self.request.query_params.get('isin')
+        if isin:
+            stock_transactions = models.StockTransaction.objects.filter(account=account, isin=isin).order_by('-date')
+        else:
+            stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+        stock_transactions = stock_transactions.filter(transaction_type__in=['buy', 'sell'])
 
         serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
 
@@ -264,6 +270,28 @@ class StockBalanceViewSet(viewsets.ViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['GET'])
+    def dto(self, request, pk, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_balance = models.StockBalance.objects.filter(isin=pk, account=account).first()
+        serializer = serializers.StockBalanceDtoSerializer(stock_balance, many=False)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'])
+    def list_dto(self, request, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_balances = models.StockBalance.objects.filter(account=account)
+        serializer = serializers.StockBalanceDtoSerializer(stock_balances, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class StockSearchAPIView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -283,5 +311,8 @@ class StockSearchAPIView(APIView):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_stock(request):
-    update_stock_price()
+    if request.data.get('date'):
+        update_stock_price(datetime.datetime.fromisoformat(request.data.get('date')))
+    else:
+        update_stock_price()
     return Response({"msg": "Stock price updated"}, status=status.HTTP_200_OK)

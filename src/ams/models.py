@@ -59,7 +59,7 @@ class Exchange(models.Model):
     mic = models.CharField(max_length=10)
     country = models.CharField(max_length=128)
     code = models.CharField(max_length=20)
-    timezone = models.CharField(max_length=20)
+    timezone = models.CharField(max_length=100)
     opening_hour = models.TimeField()
     closing_hour = models.TimeField()
 
