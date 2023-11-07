@@ -211,7 +211,7 @@
         "mic": "XMUN",
         "open": "08:00:00",
         "close": "22:00:00",
-        "timezone": "Europe/Berline",
+        "timezone": "Europe/Berlin",
         "country": "Germany",
         "code": "MU"
     },

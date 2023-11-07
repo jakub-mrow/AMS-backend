@@ -1,3 +1,4 @@
+import datetime
 import logging
 import requests
 from ams import models, serializers
@@ -13,6 +14,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from ams import models, serializers
+from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance
+from ams.services.stock_balance_service import update_stock_balance, update_stock_price
+from main.settings import EOD_TOKEN, EOD_API_URL
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
 
@@ -243,7 +248,12 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+        isin = self.request.query_params.get('isin')
+        if isin:
+            stock_transactions = models.StockTransaction.objects.filter(account=account, isin=isin).order_by('-date')
+        else:
+            stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+        stock_transactions = stock_transactions.filter(transaction_type__in=['buy', 'sell'])
 
         serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
 
@@ -306,5 +316,8 @@ class StockSearchAPIView(APIView):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_stock(request):
-    update_stock_price()
+    if request.data.get('date'):
+        update_stock_price(datetime.datetime.fromisoformat(request.data.get('date')))
+    else:
+        update_stock_price()
     return Response({"msg": "Stock price updated"}, status=status.HTTP_200_OK)
