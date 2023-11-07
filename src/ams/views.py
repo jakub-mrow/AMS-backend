@@ -14,6 +14,7 @@ from ams.services.stock_balance_service import update_stock_balance, update_stoc
 from main.settings import EOD_TOKEN, EOD_API_URL
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -77,7 +78,8 @@ class AccountViewSet(viewsets.ModelViewSet):
             preferences = None
 
         if preferences:
-            return Response(serializers.AccountPreferencesSerializer(account.account_preferences).data, status=status.HTTP_200_OK)
+            return Response(serializers.AccountPreferencesSerializer(account.account_preferences).data,
+                            status=status.HTTP_200_OK)
         else:
             return Response({"error": "No preferences found for to this account"},
                             status=status.HTTP_404_NOT_FOUND)
@@ -224,9 +226,10 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Stock.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
-        serializer.save()
         try:
-            update_stock_balance(serializer.instance, account)
+            with transaction.atomic():
+                serializer.save()
+                update_stock_balance(serializer.instance, account)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
@@ -297,6 +300,7 @@ class StockSearchAPIView(APIView):
             return Response(data, status=response.status_code)
         except Exception as e:
             return Response({'error': 'Internal Server Error'}, status=500)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
