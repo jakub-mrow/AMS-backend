@@ -27,8 +27,8 @@ def update_stock_balance(stock_transaction, account):
             raise Exception('Not enough stocks to sell.')
         stock_balance.quantity -= stock_transaction.quantity
         stock_balance.value -= stock_transaction.quantity * stock_transaction.price
-
-    stock_balance.last_transaction_date = datetime.datetime.now()
+    elif stock_transaction.transaction_type == 'price':
+        stock_balance.value = stock_transaction.price * stock_balance.quantity
 
     stock_balance.last_transaction_date = datetime.datetime.now()
 
