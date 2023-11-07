@@ -20,6 +20,7 @@ from ams.services.stock_balance_service import update_stock_balance, update_stoc
 from main.settings import EOD_TOKEN, EOD_API_URL
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
