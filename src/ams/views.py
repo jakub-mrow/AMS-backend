@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 import requests
@@ -239,7 +240,12 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+        isin = self.request.query_params.get('isin')
+        if isin:
+            stock_transactions = models.StockTransaction.objects.filter(account=account, isin=isin).order_by('-date')
+        else:
+            stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+        stock_transactions = stock_transactions.filter(transaction_type__in=['buy', 'sell'])
 
         serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
 
@@ -298,8 +304,12 @@ class StockSearchAPIView(APIView):
         except Exception as e:
             return Response({'error': 'Internal Server Error'}, status=500)
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_stock(request):
-    update_stock_price()
+    if request.data.get('date'):
+        update_stock_price(datetime.datetime.fromisoformat(request.data.get('date')))
+    else:
+        update_stock_price()
     return Response({"msg": "Stock price updated"}, status=status.HTTP_200_OK)
