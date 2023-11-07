@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 import requests
@@ -303,8 +304,12 @@ class StockSearchAPIView(APIView):
         except Exception as e:
             return Response({'error': 'Internal Server Error'}, status=500)
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_stock(request):
-    update_stock_price()
+    if request.data.get('date'):
+        update_stock_price(datetime.datetime.fromisoformat(request.data.get('date')))
+    else:
+        update_stock_price()
     return Response({"msg": "Stock price updated"}, status=status.HTTP_200_OK)
