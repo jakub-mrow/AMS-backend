@@ -1,12 +1,8 @@
 import datetime
 import logging
+
 import requests
-from ams import models, serializers
-from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance, \
-    add_transaction_from_stock
-from ams.services.stock_balance_service import update_stock_balance, update_stock_price
 from django.db import transaction
-from main.settings import EOD_TOKEN, EOD_API_URL
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -15,12 +11,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ams import models, serializers
+from ams.services.account_balance_service import add_transaction_from_stock
 from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance
 from ams.services.stock_balance_service import update_stock_balance, update_stock_price
 from main.settings import EOD_TOKEN, EOD_API_URL
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
-from django.db import transaction
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -234,9 +230,20 @@ class StockTransactionViewSet(viewsets.ViewSet):
 
         try:
             with transaction.atomic():
-                serializer.save()
-                update_stock_balance(serializer.instance, account)
-                add_transaction_from_stock(serializer.instance, stock, account)
+                stock_transaction = serializer.save()
+                stock_balance, _ = models.StockBalance.objects.get_or_create(
+                    isin=stock_transaction.isin,
+                    account=account,
+                    defaults={
+                        'last_transaction_date': datetime.datetime.now(),
+                        'quantity': 0,
+                        'result': 0,
+                        'value': 0,
+                    }
+                )
+                update_stock_balance(stock_transaction, stock_balance)
+                stock_balance.save()
+                add_transaction_from_stock(stock_transaction, stock, account)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 

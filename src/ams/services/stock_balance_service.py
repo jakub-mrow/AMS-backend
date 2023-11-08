@@ -7,18 +7,7 @@ from ams import models
 from ams.services import eod_service
 
 
-def update_stock_balance(stock_transaction, account):
-    stock_balance, created = models.StockBalance.objects.get_or_create(
-        isin=stock_transaction.isin,
-        account=account,
-        defaults={
-            'last_transaction_date': datetime.datetime.now(),
-            'quantity': 0,
-            'result': 0,
-            'value': 0,
-        }
-    )
-
+def update_stock_balance(stock_transaction, stock_balance):
     if stock_transaction.transaction_type == 'buy':
         stock_balance.quantity += stock_transaction.quantity
         stock_balance.value += stock_transaction.quantity * stock_transaction.price
@@ -30,9 +19,7 @@ def update_stock_balance(stock_transaction, account):
     elif stock_transaction.transaction_type == 'price':
         stock_balance.value = stock_transaction.price * stock_balance.quantity
 
-    stock_balance.last_transaction_date = datetime.datetime.now()
-
-    stock_balance.save()
+    stock_balance.last_transaction_date = stock_transaction.date
 
 
 def update_stock_price(utc_now=datetime.datetime.utcnow()):
