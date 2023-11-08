@@ -34,7 +34,7 @@ class AccountViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         account = serializer.save()
-        models.AccountPreferences.objects.create(
+        preferences = models.AccountPreferences.objects.create(
             account=account,
             base_currency='PLN',
             tax_currency='PLN',
