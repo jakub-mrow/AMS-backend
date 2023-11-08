@@ -64,9 +64,8 @@ def calculate_account_xirr(account):
                 currency_difference = 1
             else:
                 currency_difference = currency_pairs[currency_pair]
-            print(currency_difference)
-            balance_amount = float(stock_balance.value) * currency_difference
 
+            balance_amount = float(stock_balance.value) * currency_difference
             dates.append(today)
             amounts.append(balance_amount)
 
