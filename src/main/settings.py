@@ -18,7 +18,6 @@ from celery.schedules import crontab
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -67,7 +66,6 @@ LOGGING = {
         }
     },
 }
-
 
 # Application definition
 
@@ -131,7 +129,6 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=15),
 }
 
-
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -145,7 +142,6 @@ DATABASES = {
         'PORT': 5432,
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -165,7 +161,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
@@ -176,7 +171,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = False
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
@@ -195,6 +189,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'ams.tasks.update_stock_price_task',
         'schedule': crontab(minute='0'),
     },
+    'save-account-history': {
+        'task': 'ams.tasks.save_account_history',
+        'schedule': crontab(hour='0', minute='0'),
+    }
 }
 
 EOD_TOKEN = os.getenv('EOD_TOKEN')
