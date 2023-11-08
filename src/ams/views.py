@@ -13,10 +13,11 @@ from rest_framework.views import APIView
 from ams import models, serializers
 from ams.services.account_balance_service import add_transaction_from_stock
 from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance
-from ams.services.stock_balance_service import update_stock_balance, update_stock_price
+from ams.services.stock_balance_service import update_stock_price
 from main.settings import EOD_TOKEN, EOD_API_URL
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
+from .services import stock_balance_service
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -231,18 +232,7 @@ class StockTransactionViewSet(viewsets.ViewSet):
         try:
             with transaction.atomic():
                 stock_transaction = serializer.save()
-                stock_balance, _ = models.StockBalance.objects.get_or_create(
-                    isin=stock_transaction.isin,
-                    account=account,
-                    defaults={
-                        'last_transaction_date': datetime.datetime.now(),
-                        'quantity': 0,
-                        'result': 0,
-                        'value': 0,
-                    }
-                )
-                update_stock_balance(stock_transaction, stock_balance)
-                stock_balance.save()
+                stock_balance_service.add_stock_transaction_to_balance(stock_transaction, account)
                 add_transaction_from_stock(stock_transaction, stock, account)
         except Exception as e:
             return Response({"error": str(e)}, status=400)

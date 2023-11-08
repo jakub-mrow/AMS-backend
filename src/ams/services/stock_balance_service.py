@@ -7,6 +7,25 @@ from ams import models
 from ams.services import eod_service
 
 
+def add_stock_transaction_to_balance(stock_transaction, account):
+    stock_balance, _ = models.StockBalance.objects.get_or_create(
+        isin=stock_transaction.isin,
+        account=account,
+        defaults={
+            'quantity': 0,
+            'result': 0,
+            'value': 0,
+        }
+    )
+
+    if not stock_balance.last_transaction_date or stock_balance.last_transaction_date <= stock_transaction.date:
+        update_stock_balance(stock_transaction, stock_balance)
+    else:
+        rebuild_stock_balance(stock_balance)
+
+    stock_balance.save()
+
+
 def update_stock_balance(stock_transaction, stock_balance):
     if stock_transaction.transaction_type == 'buy':
         stock_balance.quantity += stock_transaction.quantity
@@ -19,7 +38,8 @@ def update_stock_balance(stock_transaction, stock_balance):
     elif stock_transaction.transaction_type == 'price':
         stock_balance.value = stock_transaction.price * stock_balance.quantity
 
-    stock_balance.last_transaction_date = stock_transaction.date
+    if not stock_balance.last_transaction_date or stock_balance.last_transaction_date < stock_transaction.date:
+        stock_balance.last_transaction_date = stock_transaction.date
 
 
 def update_stock_price(utc_now=datetime.datetime.utcnow()):
@@ -59,3 +79,27 @@ def update_stock_price(utc_now=datetime.datetime.utcnow()):
                 )
                 stock_transaction.save()
                 update_stock_balance(stock_transaction, stock_balance.account)
+
+
+def rebuild_stock_balance(stock_balance):
+    desired_date = datetime.datetime.now().date()
+    history_date = desired_date - datetime.timedelta(days=1)
+    stock_balance_history = models.StockBalanceHistory.objects.filter(isin=stock_balance.isin,
+                                                                      account=stock_balance.account,
+                                                                      date=history_date).first()
+
+    if stock_balance_history:
+        stock_balance.quantity = stock_balance_history.quantity
+        stock_balance.value = stock_balance_history.value
+        stock_balance.result = stock_balance_history.result
+    else:
+        stock_balance.quantity = 0
+        stock_balance.value = 0
+        stock_balance.result = 0
+
+    transactions_on_date = models.StockTransaction.objects.filter(date__date=desired_date).order_by('date')
+
+    for transaction in transactions_on_date:
+        update_stock_balance(transaction, stock_balance)
+
+    stock_balance.save()
