@@ -255,8 +255,8 @@ class StockTransactionViewSet(viewsets.ViewSet):
             stock_balance_service.buy_stocks(buy_command)
         except Exception as e:
             logger.exception(e)
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"msg": "Buy command added"}, status=status.HTTP_201_CREATED)
+            return Response({"error": f"Problem with buying stocks"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"msg": f"Stocks ${buy_command.ticket} bought"}, status=status.HTTP_201_CREATED)
 
 
 class StockBalanceViewSet(viewsets.ViewSet):

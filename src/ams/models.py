@@ -118,12 +118,3 @@ class AccountPreferences(models.Model):
     base_currency = models.CharField(max_length=3)
     tax_currency = models.CharField(max_length=3)
 
-
-class BuyCommand:
-    def __init__(self, account_id, ticker, exchange_code, quantity, price, date):
-        self.account_id = account_id
-        self.ticker = ticker
-        self.exchange_code = exchange_code
-        self.quantity = quantity
-        self.price = price
-        self.date = date

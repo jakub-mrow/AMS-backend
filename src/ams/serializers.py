@@ -2,6 +2,7 @@ import pytz
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
+import ams.services.models
 from ams import models
 
 
@@ -121,5 +122,4 @@ class BuyCommandSerializer(serializers.Serializer):
     def create(self, validated_data):
         account_id = self.context.get('account_id')
         date = validated_data.pop('date')
-        date = pytz.UTC.localize(date)
-        return models.BuyCommand(account_id, date=date, **validated_data)
+        return ams.services.models.BuyCommand(account_id, date=date, **validated_data)

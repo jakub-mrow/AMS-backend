@@ -1,10 +1,11 @@
 import datetime
 
 import pytz
+from django.db import transaction
 from pytz import timezone
 
 from ams import models
-from ams.services import eod_service
+from ams.services import eod_service, account_balance_service
 
 
 def update_stock_balance(stock_transaction, account):
@@ -71,6 +72,7 @@ def update_stock_price():
                 update_stock_balance(stock_transaction, stock_balance.account)
 
 
+@transaction.atomic
 def buy_stocks(buy_command):
     try:
         account = models.Account.objects.get(id=buy_command.account_id)
@@ -102,6 +104,7 @@ def buy_stocks(buy_command):
         transaction_type='buy',
         date=buy_command.date
     )
-    stock_transaction.save()
 
+    stock_transaction.save()
     update_stock_balance(stock_transaction, account)
+    account_balance_service.add_transaction_from_stock(stock_transaction, stock, account)
