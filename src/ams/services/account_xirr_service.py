@@ -35,42 +35,43 @@ def calculate_account_xirr(account):
     else:
         currency_pairs = get_current_currency_price(currencies[0])
 
-    dates = []
-    amounts = []
-    for transaction in transactions:
-        currency_pair = f'{transaction.currency}{base_currency}'
-        if transaction.currency == base_currency:
-            currency_difference = 1.0
-        else:
-            currency_difference = currency_pairs[currency_pair]
+    if currency_pairs:
+        dates = []
+        amounts = []
+        for transaction in transactions:
+            currency_pair = f'{transaction.currency}{base_currency}'
+            if transaction.currency == base_currency:
+                currency_difference = 1.0
+            else:
+                currency_difference = currency_pairs[currency_pair]
 
-        dates.append(transaction.transaction_date)
+            dates.append(transaction.transaction_date)
 
-        if transaction.type == Transaction.DEPOSIT:
-            transaction_amount = float(transaction.amount) * currency_difference
-            amounts.append(transaction_amount)
-        elif transaction.type == Transaction.WITHDRAWAL:
-            transaction_amount = float(-transaction.amount) * currency_difference
-            amounts.append(transaction_amount)
+            if transaction.type == Transaction.DEPOSIT:
+                transaction_amount = float(transaction.amount) * currency_difference
+                amounts.append(transaction_amount)
+            elif transaction.type == Transaction.WITHDRAWAL:
+                transaction_amount = float(-transaction.amount) * currency_difference
+                amounts.append(transaction_amount)
 
-    today = date.today()
+        today = date.today()
 
-    for stock_balance in stock_balances:
-        stock = Stock.objects.get(isin=stock_balance.isin)
-        currency_pair = f'{stock.currency}{base_currency}'
+        for stock_balance in stock_balances:
+            stock = Stock.objects.get(isin=stock_balance.isin)
+            currency_pair = f'{stock.currency}{base_currency}'
 
-        if stock.currency == base_currency:
-            currency_difference = 1
-        else:
-            currency_difference = currency_pairs[currency_pair]
-        print(currency_difference)
-        balance_amount = float(stock_balance.value) * currency_difference
+            if stock.currency == base_currency:
+                currency_difference = 1
+            else:
+                currency_difference = currency_pairs[currency_pair]
+            print(currency_difference)
+            balance_amount = float(stock_balance.value) * currency_difference
 
-        dates.append(today)
-        amounts.append(balance_amount)
+            dates.append(today)
+            amounts.append(balance_amount)
 
-    transactions_tuple = zip(dates, amounts)
-    current_xirr = xirr(transactions_tuple)
-    account.xirr = current_xirr
+        transactions_tuple = zip(dates, amounts)
+        current_xirr = xirr(transactions_tuple)
+        account.xirr = current_xirr
 
-    account.save()
+        account.save()
