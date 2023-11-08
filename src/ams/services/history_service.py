@@ -24,3 +24,22 @@ def save_account_history():
 
         account.last_save_date = history_date
         account.save()
+
+
+def save_stock_balance_history():
+    date = datetime.now().date()
+    history_date = date - timedelta(days=1)
+
+    stock_balances = models.StockBalance.objects.all()
+
+    for stock_balance in stock_balances:
+        models.StockBalanceHistory.objects.create(
+            isin=stock_balance.isin,
+            account=stock_balance.account,
+            date=history_date,
+            quantity=stock_balance.quantity,
+            value=stock_balance.value,
+            result=stock_balance.result,
+        )
+        stock_balance.last_save_date = history_date
+        stock_balance.save()
