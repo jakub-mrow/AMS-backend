@@ -1,6 +1,12 @@
+import datetime
 import logging
-
 import requests
+from ams import models, serializers
+from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance, \
+    add_transaction_from_stock
+from ams.services.stock_balance_service import update_stock_balance, update_stock_price
+from django.db import transaction
+from main.settings import EOD_TOKEN, EOD_API_URL
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -9,12 +15,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ams import models, serializers
-from ams.tasks import calculate_account_xirr_task
 from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance
 from ams.services.stock_balance_service import update_stock_balance, update_stock_price
 from main.settings import EOD_TOKEN, EOD_API_URL
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -27,7 +33,12 @@ class AccountViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        account = serializer.save()
+        models.AccountPreferences.objects.create(
+            account=account,
+            base_currency='PLN',
+            tax_currency='PLN',
+        )
         logging.info("Account created")
         return Response({"msg": "Account created"}, status=status.HTTP_201_CREATED)
 
@@ -73,7 +84,8 @@ class AccountViewSet(viewsets.ModelViewSet):
             preferences = None
 
         if preferences:
-            return Response(serializers.AccountPreferencesSerializer(account.account_preferences).data, status=status.HTTP_200_OK)
+            return Response(serializers.AccountPreferencesSerializer(account.account_preferences).data,
+                            status=status.HTTP_200_OK)
         else:
             return Response({"error": "No preferences found for to this account"},
                             status=status.HTTP_404_NOT_FOUND)
@@ -119,8 +131,6 @@ class TransactionViewSet(viewsets.ViewSet):
                 add_transaction_to_account_balance(transaction, account, account_balance)
         else:
             add_transaction_to_account_balance(transaction, account, account_balance)
-
-        calculate_account_xirr_task.delay(account.id)
 
         return Response({"msg": "Transaction created."}, status=status.HTTP_201_CREATED)
 
@@ -218,13 +228,16 @@ class StockTransactionViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         try:
-            models.Stock.objects.get(pk=serializer.validated_data['isin'])
+            stock = models.Stock.objects.get(pk=serializer.validated_data['isin'])
         except models.Stock.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
         serializer.save()
         try:
-            update_stock_balance(serializer.instance, account)
+            with transaction.atomic():
+                serializer.save()
+                update_stock_balance(serializer.instance, account)
+                add_transaction_from_stock(serializer.instance, stock, account)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
@@ -237,7 +250,12 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+        isin = self.request.query_params.get('isin')
+        if isin:
+            stock_transactions = models.StockTransaction.objects.filter(account=account, isin=isin).order_by('-date')
+        else:
+            stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+        stock_transactions = stock_transactions.filter(transaction_type__in=['buy', 'sell'])
 
         serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
 
@@ -259,6 +277,28 @@ class StockBalanceViewSet(viewsets.ViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['GET'])
+    def dto(self, request, pk, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_balance = models.StockBalance.objects.filter(isin=pk, account=account).first()
+        serializer = serializers.StockBalanceDtoSerializer(stock_balance, many=False)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['GET'])
+    def list_dto(self, request, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_balances = models.StockBalance.objects.filter(account=account)
+        serializer = serializers.StockBalanceDtoSerializer(stock_balances, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class StockSearchAPIView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -274,8 +314,12 @@ class StockSearchAPIView(APIView):
         except Exception as e:
             return Response({'error': 'Internal Server Error'}, status=500)
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_stock(request):
-    update_stock_price()
+    if request.data.get('date'):
+        update_stock_price(datetime.datetime.fromisoformat(request.data.get('date')))
+    else:
+        update_stock_price()
     return Response({"msg": "Stock price updated"}, status=status.HTTP_200_OK)

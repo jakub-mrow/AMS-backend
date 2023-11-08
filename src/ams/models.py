@@ -30,9 +30,13 @@ class AccountHistoryBalance(models.Model):
 class Transaction(models.Model):
     DEPOSIT = 'deposit'
     WITHDRAWAL = 'withdrawal'
+    BUY = 'buy'
+    SELL = 'sell'
     TRANSACTION_TYPE_CHOICES = (
         (DEPOSIT, 'Deposit'),
         (WITHDRAWAL, 'Withdrawal'),
+        (BUY, 'Buy'),
+        (SELL, 'Sell')
     )
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='transactions')
@@ -60,7 +64,7 @@ class Exchange(models.Model):
     mic = models.CharField(max_length=10)
     country = models.CharField(max_length=128)
     code = models.CharField(max_length=20)
-    timezone = models.CharField(max_length=20)
+    timezone = models.CharField(max_length=100)
     opening_hour = models.TimeField()
     closing_hour = models.TimeField()
 
