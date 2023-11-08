@@ -56,13 +56,13 @@ class TransactionSerializer(serializers.ModelSerializer):
 class ExchangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Exchange
-        fields = ('id', 'name', 'closing_time')
+        fields = ('id', 'name', 'mic', 'country', 'code', 'timezone', 'opening_hour', 'closing_hour')
 
 
 class StockSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Stock
-        fields = ('isin', 'name', 'exchange', 'currency')
+        fields = ('isin', 'ticker', 'name', 'exchange', 'currency')
 
 
 class StockTransactionSerializer(serializers.ModelSerializer):

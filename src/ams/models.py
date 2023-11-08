@@ -57,7 +57,12 @@ class AccountBalance(models.Model):
 
 class Exchange(models.Model):
     name = models.CharField(max_length=128)
-    closing_time = models.TimeField()
+    mic = models.CharField(max_length=10)
+    country = models.CharField(max_length=128)
+    code = models.CharField(max_length=20)
+    timezone = models.CharField(max_length=20)
+    opening_hour = models.TimeField()
+    closing_hour = models.TimeField()
 
     def __str__(self):
         return f"{self.name}"
@@ -66,9 +71,11 @@ class Exchange(models.Model):
 class StockTransaction(models.Model):
     BUY = 'buy'
     SELL = 'sell'
+    PRICE = 'price'
     TRANSACTION_TYPE_CHOICES = (
         (BUY, 'Buy'),
         (SELL, 'Sell'),
+        (PRICE, 'Price')
     )
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='stock_transaction')
@@ -84,6 +91,7 @@ class StockTransaction(models.Model):
 
 class Stock(models.Model):
     isin = models.CharField(max_length=12, primary_key=True)
+    ticker = models.CharField(max_length=5)
     name = models.CharField(max_length=128)
     currency = models.CharField(max_length=3)
     exchange = models.ForeignKey(Exchange, on_delete=models.CASCADE)
