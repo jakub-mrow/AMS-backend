@@ -3,9 +3,9 @@ from ams import models
 
 
 def add_transaction_to_account_balance(transaction, account, account_balance):
-    if transaction.type == 'deposit' or transaction.type == 'buy':
+    if transaction.type == 'deposit' or transaction.type == 'sell':
         account_balance.amount += transaction.amount
-    elif transaction.type == 'withdrawal' or transaction.type == 'sell':
+    elif transaction.type == 'withdrawal' or transaction.type == 'buy':
         account_balance.amount -= transaction.amount
 
     if account.last_transaction_date:
