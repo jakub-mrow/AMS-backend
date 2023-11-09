@@ -18,12 +18,12 @@ def add_stock_transaction_to_balance(stock_transaction, account):
         }
     )
     if created:
-        rebuild_stock_balance_history(stock_balance, stock_transaction.date.date())
+        rebuild_stock_balance(stock_balance, stock_transaction.date.date())
     else:
         if stock_balance.last_save_date >= stock_transaction.date.date():
-            rebuild_stock_balance_history(stock_balance, stock_transaction.date.date())
+            rebuild_stock_balance(stock_balance, stock_transaction.date.date())
         if stock_balance.last_transaction_date > stock_transaction.date:
-            rebuild_stock_balance(stock_balance)
+            rebuild_stock_balance(stock_balance, datetime.datetime.now().date())
         else:
             update_stock_balance(stock_transaction, stock_balance)
             stock_balance.save()
@@ -84,31 +84,7 @@ def update_stock_price(utc_now=datetime.datetime.utcnow()):
                 update_stock_balance(stock_transaction, stock_balance.account)
 
 
-def rebuild_stock_balance(stock_balance):
-    desired_date = datetime.datetime.now().date()
-    history_date = desired_date - datetime.timedelta(days=1)
-    stock_balance_history = models.StockBalanceHistory.objects.filter(isin=stock_balance.isin,
-                                                                      account=stock_balance.account,
-                                                                      date=history_date).first()
-
-    if stock_balance_history:
-        stock_balance.quantity = stock_balance_history.quantity
-        stock_balance.value = stock_balance_history.value
-        stock_balance.result = stock_balance_history.result
-    else:
-        stock_balance.quantity = 0
-        stock_balance.value = 0
-        stock_balance.result = 0
-
-    transactions_on_date = models.StockTransaction.objects.filter(date__date=desired_date).order_by('date')
-
-    for transaction in transactions_on_date:
-        update_stock_balance(transaction, stock_balance)
-
-    stock_balance.save()
-
-
-def rebuild_stock_balance_history(stock_balance, rebuild_date):
+def rebuild_stock_balance(stock_balance, rebuild_date):
     history_date = rebuild_date - datetime.timedelta(days=1)
     stock_balance_history = models.StockBalanceHistory.objects.filter(isin=stock_balance.isin,
                                                                       account=stock_balance.account,
