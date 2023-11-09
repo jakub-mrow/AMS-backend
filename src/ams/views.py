@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 from rest_framework import status, viewsets
@@ -14,7 +15,6 @@ from ams.services.stock_balance_service import update_stock_balance
 from ams.services.stock_balance_service import update_stock_price
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
-from .services import stock_balance_service, eod_service
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -78,7 +78,8 @@ class AccountViewSet(viewsets.ModelViewSet):
             preferences = None
 
         if preferences:
-            return Response(serializers.AccountPreferencesSerializer(account.account_preferences).data, status=status.HTTP_200_OK)
+            return Response(serializers.AccountPreferencesSerializer(account.account_preferences).data,
+                            status=status.HTTP_200_OK)
         else:
             return Response({"error": "No preferences found for to this account"},
                             status=status.HTTP_404_NOT_FOUND)
@@ -221,13 +222,15 @@ class StockTransactionViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         try:
-            models.Stock.objects.get(pk=serializer.validated_data['isin'])
+            stock = models.Stock.objects.get(pk=serializer.validated_data['isin'])
         except models.Stock.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
-        serializer.save()
         try:
-            update_stock_balance(serializer.instance, account)
+            with transaction.atomic():
+                serializer.save()
+                update_stock_balance(serializer.instance, account)
+                add_transaction_from_stock(serializer.instance, stock, account)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
@@ -240,7 +243,12 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+        isin = self.request.query_params.get('isin')
+        if isin:
+            stock_transactions = models.StockTransaction.objects.filter(account=account, isin=isin).order_by('-date')
+        else:
+            stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+        stock_transactions = stock_transactions.filter(transaction_type__in=['buy', 'sell'])
 
         serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
 
@@ -274,6 +282,17 @@ class StockBalanceViewSet(viewsets.ViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['GET'])
+    def dto(self, request, pk, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_balance = models.StockBalance.objects.filter(isin=pk, account=account).first()
+        serializer = serializers.StockBalanceDtoSerializer(stock_balance, many=False)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['GET'])
     def list_dto(self, request, account_id):
         try:
@@ -299,8 +318,12 @@ class StockSearchAPIView(APIView):
             logger.exception(e)
             return Response({'error': 'Internal Server Error'}, status=500)
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_stock(request):
-    update_stock_price()
+    if request.data.get('date'):
+        update_stock_price(datetime.datetime.fromisoformat(request.data.get('date')))
+    else:
+        update_stock_price()
     return Response({"msg": "Stock price updated"}, status=status.HTTP_200_OK)

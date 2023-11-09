@@ -36,26 +36,29 @@ def update_stock_balance(stock_transaction, account):
     stock_balance.save()
 
 
-def update_stock_price():
+def update_stock_price(utc_now=datetime.datetime.utcnow()):
+    utc_now_tz = utc_now.replace(minute=0, second=0, microsecond=0).astimezone(pytz.UTC)
+    window_start = utc_now_tz - datetime.timedelta(hours=5)
+    window_end = utc_now_tz - datetime.timedelta(hours=4)
+    weekday = window_start.weekday()
+    if weekday == 5 or weekday == 6:
+        return
     exchanges = models.Exchange.objects.all()
     for exchange in exchanges:
         tz = timezone(exchange.timezone)
-        closing_time = datetime.datetime.now().replace(
+        closing_time = window_start.replace(
             hour=exchange.closing_hour.hour,
             minute=exchange.closing_hour.minute,
             second=exchange.closing_hour.second,
-            microsecond=exchange.closing_hour.microsecond
+            microsecond=exchange.closing_hour.microsecond,
+            tzinfo=None
         )
         utc_closing_time = tz.localize(closing_time).astimezone(pytz.UTC)
-        utc_now = datetime.datetime.utcnow()
-        utc_now = utc_now.replace(minute=0, second=0, microsecond=0)
-        utc_now = utc_now.astimezone(pytz.UTC)
-        if datetime.timedelta(hours=4) > utc_now - utc_closing_time or utc_now - utc_closing_time >= datetime.timedelta(
-                hours=5):
+        if not (window_start <= utc_closing_time < window_end):
             continue
         stocks = models.Stock.objects.filter(exchange=exchange)
         for stock in stocks:
-            current_price = eod_service.get_current_price(stock, utc_now)
+            current_price = eod_service.get_current_price(stock, utc_closing_time)
             if not current_price:
                 continue
             stock_balances = models.StockBalance.objects.filter(isin=stock.isin)
@@ -66,7 +69,7 @@ def update_stock_price():
                     transaction_type='price',
                     quantity=stock_balance.quantity,
                     price=current_price,
-                    date=utc_now,
+                    date=utc_closing_time,
                 )
                 stock_transaction.save()
                 update_stock_balance(stock_transaction, stock_balance.account)
