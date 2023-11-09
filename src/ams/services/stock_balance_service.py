@@ -8,7 +8,7 @@ from ams.services import eod_service
 
 
 def add_stock_transaction_to_balance(stock_transaction, account):
-    stock_balance, _ = models.StockBalance.objects.get_or_create(
+    stock_balance, created = models.StockBalance.objects.get_or_create(
         isin=stock_transaction.isin,
         account=account,
         defaults={
@@ -17,13 +17,16 @@ def add_stock_transaction_to_balance(stock_transaction, account):
             'value': 0,
         }
     )
-
-    if not stock_balance.last_transaction_date or stock_balance.last_transaction_date <= stock_transaction.date:
-        update_stock_balance(stock_transaction, stock_balance)
+    if created:
+        rebuild_stock_balance_history(stock_balance, stock_transaction.date.date())
     else:
-        rebuild_stock_balance(stock_balance)
-
-    stock_balance.save()
+        if stock_balance.last_save_date >= stock_transaction.date.date():
+            rebuild_stock_balance_history(stock_balance, stock_transaction.date.date())
+        if stock_balance.last_transaction_date > stock_transaction.date:
+            rebuild_stock_balance(stock_balance)
+        else:
+            update_stock_balance(stock_transaction, stock_balance)
+            stock_balance.save()
 
 
 def update_stock_balance(stock_transaction, stock_balance):
@@ -102,4 +105,46 @@ def rebuild_stock_balance(stock_balance):
     for transaction in transactions_on_date:
         update_stock_balance(transaction, stock_balance)
 
+    stock_balance.save()
+
+
+def rebuild_stock_balance_history(stock_balance, rebuild_date):
+    history_date = rebuild_date - datetime.timedelta(days=1)
+    stock_balance_history = models.StockBalanceHistory.objects.filter(isin=stock_balance.isin,
+                                                                      account=stock_balance.account,
+                                                                      date=history_date).first()
+    models.StockBalanceHistory.objects.filter(isin=stock_balance.isin,
+                                              account=stock_balance.account,
+                                              date__gte=rebuild_date).delete()
+
+    if stock_balance_history:
+        stock_balance.quantity = stock_balance_history.quantity
+        stock_balance.value = stock_balance_history.value
+        stock_balance.result = stock_balance_history.result
+    else:
+        stock_balance.quantity = 0
+        stock_balance.value = 0
+        stock_balance.result = 0
+
+    transactions_on_date = models.StockTransaction.objects.filter(date__gte=rebuild_date).order_by('date')
+    today = datetime.datetime.now().date()
+    yesterday = today - datetime.timedelta(days=1)
+    for day in range((yesterday - rebuild_date).days + 1):
+        for transaction in transactions_on_date.filter(date__date=rebuild_date + datetime.timedelta(days=day)):
+            update_stock_balance(transaction, stock_balance)
+
+        models.StockBalanceHistory.objects.create(
+            isin=stock_balance.isin,
+            account=stock_balance.account,
+            date=rebuild_date + datetime.timedelta(days=day),
+            quantity=stock_balance.quantity,
+            value=stock_balance.value,
+            result=stock_balance.result,
+        )
+
+    today_transactions = models.StockTransaction.objects.filter(date__date=today).order_by('date')
+
+    for transaction in today_transactions:
+        update_stock_balance(transaction, stock_balance)
+    stock_balance.last_save_date = yesterday
     stock_balance.save()
