@@ -295,6 +295,32 @@ class StockBalanceViewSet(viewsets.ViewSet):
         serializer = serializers.StockBalanceDtoSerializer(stock_balances, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['GET'])
+    def history(self, request, pk, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        from_date = request.query_params.get('from')
+        to_date = request.query_params.get('to')
+
+        if from_date and to_date:
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account,
+                                                                                date__gte=from_date,
+                                                                                date__lte=to_date).order_by('date')
+        elif from_date:
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account,
+                                                                                date__gte=from_date).order_by('date')
+        elif to_date:
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account,
+                                                                                date__lte=to_date).order_by('date')
+        else:
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account).order_by(
+                'date')
+        serializer = serializers.StockBalanceHistoryDtoSerializer(stock_balance_histories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class StockSearchAPIView(APIView):
     permission_classes = (IsAuthenticated,)
