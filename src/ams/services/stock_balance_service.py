@@ -81,7 +81,7 @@ def update_stock_price(utc_now=datetime.datetime.utcnow()):
                     date=utc_closing_time,
                 )
                 stock_transaction.save()
-                update_stock_balance(stock_transaction, stock_balance.account)
+                add_stock_transaction_to_balance(stock_transaction, stock_balance.account)
 
 
 def rebuild_stock_balance(stock_balance, rebuild_date):
