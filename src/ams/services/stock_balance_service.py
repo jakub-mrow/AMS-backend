@@ -22,7 +22,7 @@ def add_stock_transaction_to_balance(stock_transaction, account):
     else:
         if stock_balance.last_save_date >= stock_transaction.date.date():
             rebuild_stock_balance(stock_balance, stock_transaction.date.date())
-        if stock_balance.last_transaction_date > stock_transaction.date:
+        elif stock_balance.last_transaction_date > stock_transaction.date:
             rebuild_stock_balance(stock_balance, datetime.datetime.now().date())
         else:
             update_stock_balance(stock_transaction, stock_balance)
