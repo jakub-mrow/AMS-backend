@@ -24,7 +24,7 @@ class AccountCreateSerializer(serializers.ModelSerializer):
 class AccountSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source='user.id')
     balances = AccountBalanceSerializer(many=True)
-
+    xirr = serializers.DecimalField(max_digits=17, decimal_places=10, coerce_to_string=False)
     class Meta:
         model = models.Account
         fields = ('id', 'name', 'user_id', 'balances', 'last_transaction_date', 'last_save_date', 'xirr')
