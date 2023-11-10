@@ -11,7 +11,7 @@ def get_current_price(stock, date):
     url = f'{EOD_API_URL}/eod/{stock.ticker}.{stock.exchange.code}?api_token={EOD_TOKEN}&fmt=json&from={date.strftime("%Y-%m-%d")}&to={date.strftime("%Y-%m-%d")}'
 
     try:
-        response = requests.get(url, timeout=30.0)
+        response = requests.get(url, timeout=10.0)
         data = response.json()
         if len(data) == 0:
             logger.warning(
@@ -33,7 +33,7 @@ def get_bulk_last_day_price(stocks, exchange, date):
     }
     url = f'{EOD_API_URL}/eod-bulk-last-day/{exchange.code}'
     try:
-        response = requests.get(url, timeout=30.0, params=params)
+        response = requests.get(url, timeout=10.0, params=params)
         data = response.json()
         if len(data) == 0:
             logger.warning(
