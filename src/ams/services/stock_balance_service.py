@@ -57,10 +57,13 @@ def update_stock_price(utc_now=datetime.datetime.utcnow()):
         if not (window_start <= utc_closing_time < window_end):
             continue
         stocks = models.Stock.objects.filter(exchange=exchange)
+        if len(stocks) == 0:
+            continue
+        current_prices = eod_service.get_bulk_last_day_price(stocks, exchange, utc_closing_time)
         for stock in stocks:
-            current_price = eod_service.get_current_price(stock, utc_closing_time)
-            if not current_price:
+            if stock.ticker not in current_prices:
                 continue
+            current_price = current_prices[stock.ticker]
             stock_balances = models.StockBalance.objects.filter(isin=stock.isin)
             for stock_balance in stock_balances:
                 stock_transaction = models.StockTransaction.objects.create(
