@@ -44,3 +44,10 @@ def get_bulk_last_day_price(stocks, exchange, date):
     except Exception as e:
         logger.exception(e)
         return {}
+      
+      
+def search(query):
+    url = f'{EOD_API_URL}/search/{query}?api_token={EOD_TOKEN}&fmt=json'
+    response = requests.get(url, timeout=30.0)
+    data = response.json()
+    return data

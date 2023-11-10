@@ -1,10 +1,11 @@
 import datetime
 
 import pytz
+from django.db import transaction
 from pytz import timezone
 
 from ams import models
-from ams.services import eod_service
+from ams.services import eod_service, account_balance_service
 
 
 def update_stock_balance(stock_transaction, account):
@@ -75,3 +76,41 @@ def update_stock_price(utc_now=datetime.datetime.utcnow()):
                 )
                 stock_transaction.save()
                 update_stock_balance(stock_transaction, stock_balance.account)
+
+
+@transaction.atomic
+def buy_stocks(buy_command):
+    try:
+        account = models.Account.objects.get(id=buy_command.account_id)
+    except models.Account.DoesNotExist:
+        raise Exception('Account does not exist.')
+    try:
+        exchange = models.Exchange.objects.get(code=buy_command.exchange_code)
+    except models.Exchange.DoesNotExist:
+        raise Exception('Exchange does not exist.')
+    try:
+        stock = models.Stock.objects.get(ticker=buy_command.ticker, exchange=exchange)
+    except models.Stock.DoesNotExist:
+        search_result = eod_service.search(buy_command.ticker + '.' + buy_command.exchange_code)
+        if len(search_result) == 0:
+            raise Exception('Stock does not exist.')
+        stock_from_api = search_result[0]
+        stock = models.Stock.objects.create(
+            isin=stock_from_api['ISIN'],
+            ticker=buy_command.ticker,
+            name=stock_from_api['Name'],
+            currency=stock_from_api['Currency'],
+            exchange=exchange
+        )
+    stock_transaction = models.StockTransaction(
+        account=account,
+        isin=stock.isin,
+        quantity=buy_command.quantity,
+        price=buy_command.price,
+        transaction_type='buy',
+        date=buy_command.date
+    )
+
+    stock_transaction.save()
+    update_stock_balance(stock_transaction, account)
+    account_balance_service.add_transaction_from_stock(stock_transaction, stock, account)
