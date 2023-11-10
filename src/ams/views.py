@@ -1,12 +1,8 @@
 import datetime
 import logging
+
 import requests
-from ams import models, serializers
-from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance, \
-    add_transaction_from_stock
-from ams.services.stock_balance_service import update_stock_balance, update_stock_price
 from django.db import transaction
-from main.settings import EOD_TOKEN, EOD_API_URL
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -15,12 +11,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ams import models, serializers
+from ams.services.account_balance_service import add_transaction_from_stock
 from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance
 from ams.services.stock_balance_service import update_stock_balance, update_stock_price
 from main.settings import EOD_TOKEN, EOD_API_URL
 from .permissions import IsObjectOwner
 from .serializers import ExchangeSerializer
-from django.db import transaction
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -34,7 +30,7 @@ class AccountViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         account = serializer.save()
-        preferences = models.AccountPreferences.objects.create(
+        models.AccountPreferences.objects.create(
             account=account,
             base_currency='PLN',
             tax_currency='PLN',
@@ -232,7 +228,6 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Stock.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
-        serializer.save()
         try:
             with transaction.atomic():
                 serializer.save()

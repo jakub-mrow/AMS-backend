@@ -1,5 +1,6 @@
 from datetime import timedelta, date
 from ams import models
+from ams import tasks
 
 
 def add_transaction_to_account_balance(transaction, account, account_balance):
@@ -16,6 +17,7 @@ def add_transaction_to_account_balance(transaction, account, account_balance):
 
     account_balance.save()
     account.save()
+    tasks.calculate_account_xirr_task.delay(account.id)
 
 
 def rebuild_account_balance(account, transaction_date):

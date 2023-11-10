@@ -41,8 +41,9 @@ def get_current_currency_price(currency_pair):
     try:
         response = requests.get(url, timeout=30.0, params=params)
         data = response.json()
+        print(data)
         if data['close'] == 'NA':
-            logger.warning('No data for currencies pair')
+            logger.exception('No data for currencies pair')
             return None
         else:
             current_price = data['close']
@@ -58,7 +59,7 @@ def get_current_currency_prices(pairs):
     params = {
         'api_token': EOD_TOKEN,
         'fmt': 'json',
-        's': ".FOREX,".join(pairs[1:])
+        's': ".FOREX,".join(pairs[1:]) + ".FOREX"
     }
     url = f'{EOD_API_URL}/real-time/{pairs[0]}.FOREX'
 
@@ -66,9 +67,11 @@ def get_current_currency_prices(pairs):
     try:
         response = requests.get(url, timeout=30.0, params=params)
         data = response.json()
+        print(data)
         for item in data:
             if item['close'] == 'NA':
-                current_price = 1 # To change in the future idk what to put here xd
+                logging.exception('No data for currencies pair')
+                return None
             else:
                 current_price = item['close']
 
