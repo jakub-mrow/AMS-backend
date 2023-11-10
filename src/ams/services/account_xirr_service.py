@@ -1,10 +1,11 @@
 import logging
+from datetime import date
+
+from django.db.models.functions import TruncDate
+from pyxirr import xirr
 
 from ams.models import Transaction, StockBalance, AccountPreferences, Stock, AccountBalance
 from ams.services.eod_service import get_current_currency_prices, get_current_currency_price
-from django.db.models.functions import TruncDate
-from pyxirr import xirr
-from datetime import date
 
 
 def calculate_account_xirr(account):
@@ -19,7 +20,8 @@ def calculate_account_xirr(account):
         account_id=account.id,
         type__in=[Transaction.DEPOSIT, Transaction.WITHDRAWAL]
     ).annotate(transaction_date=TruncDate('date'))
-    transaction_currencies = [f'{currency}{base_currency}' for currency in transactions.values_list('currency', flat=True).distinct() if currency != base_currency]
+    transaction_currencies = [f'{currency}{base_currency}' for currency in
+                              transactions.values_list('currency', flat=True).distinct() if currency != base_currency]
 
     stock_balances = StockBalance.objects.filter(account_id=account.id)
     stock_currencies = []
@@ -76,9 +78,7 @@ def calculate_account_xirr(account):
             currency_difference = currency_pairs[currency_pair]
 
             balance_amount = float(balance.amount) * currency_difference
-            print(balance_amount)
             balance_sum += balance_amount
-
 
         dates.append(today)
         amounts.append(round(balance_sum, 2))

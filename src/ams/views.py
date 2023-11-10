@@ -266,7 +266,7 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except Exception as e:
             logger.exception(e)
             return Response({"error": f"Problem with buying stocks"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({"msg": f"Stocks ${buy_command.ticket} bought"}, status=status.HTTP_201_CREATED)
+        return Response({"msg": f"Stocks ${buy_command.ticker} bought"}, status=status.HTTP_201_CREATED)
 
 
 class StockBalanceViewSet(viewsets.ViewSet):
