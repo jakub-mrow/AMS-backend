@@ -1,6 +1,7 @@
 import datetime
 import logging
 
+from django.db import transaction
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.decorators import api_view, permission_classes
@@ -10,11 +11,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from ams import models, serializers
-from ams.services.account_balance_service import rebuild_account_balance, add_transaction_to_account_balance
-from ams.services.stock_balance_service import update_stock_balance
-from ams.services.stock_balance_service import update_stock_price
-from .permissions import IsObjectOwner
-from .serializers import ExchangeSerializer
+from ams.permissions import IsObjectOwner
+from ams.serializers import ExchangeSerializer
+from ams.services import stock_balance_service, eod_service
+from ams.services.account_balance_service import add_transaction_from_stock, rebuild_account_balance, \
+    add_transaction_to_account_balance
+from ams.services.stock_balance_service import update_stock_balance, update_stock_price
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -58,13 +60,13 @@ class AccountViewSet(viewsets.ModelViewSet):
         serializer = serializers.AccountPreferencesSerializer(data=request.data, context={'account_id': account.id})
         serializer.is_valid(raise_exception=True)
 
-        account_preferences = account.account_preferences
-        if account_preferences:
+        try:
+            account_preferences = account.account_preferences
             account_preferences.base_currency = serializer.validated_data.get('base_currency')
             account_preferences.tax_value = serializer.validated_data.get('tax_value')
             account_preferences.tax_currency = serializer.validated_data.get('tax_currency')
             account_preferences.save()
-        else:
+        except models.AccountPreferences.DoesNotExist:
             serializer.save()
 
         return Response({"msg": "Account preferences updated"}, status=status.HTTP_200_OK)
@@ -264,7 +266,7 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except Exception as e:
             logger.exception(e)
             return Response({"error": f"Problem with buying stocks"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({"msg": f"Stocks ${buy_command.ticket} bought"}, status=status.HTTP_201_CREATED)
+        return Response({"msg": f"Stocks ${buy_command.ticker} bought"}, status=status.HTTP_201_CREATED)
 
 
 class StockBalanceViewSet(viewsets.ViewSet):

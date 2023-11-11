@@ -194,7 +194,7 @@ CELERY_BEAT_SCHEDULE = {
     'update-stock-price': {
         'task': 'ams.tasks.update_stock_price_task',
         'schedule': crontab(minute='0'),
-    },
+    }
 }
 
 EOD_TOKEN = os.getenv('EOD_TOKEN')

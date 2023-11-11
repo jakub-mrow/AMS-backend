@@ -7,7 +7,7 @@ djangorestframework-simplejwt==5.2.0
 requests==2.24.0
 django-cors-headers==3.13.0
 drf-yasg==1.20.0
-
+pyxirr==0.9.3
 
 #celery
 celery[redis]
