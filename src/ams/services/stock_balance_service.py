@@ -164,5 +164,5 @@ def buy_stocks(buy_command):
     )
 
     stock_transaction.save()
-    update_stock_balance(stock_transaction, account)
+    add_stock_transaction_to_balance(stock_transaction, account)
     account_balance_service.add_transaction_from_stock(stock_transaction, stock, account)
