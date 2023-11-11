@@ -1,6 +1,8 @@
+import pytz
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
+import ams.services.models
 from ams import models
 
 
@@ -24,10 +26,10 @@ class AccountCreateSerializer(serializers.ModelSerializer):
 class AccountSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source='user.id')
     balances = AccountBalanceSerializer(many=True)
-
+    xirr = serializers.DecimalField(max_digits=17, decimal_places=10, coerce_to_string=False)
     class Meta:
         model = models.Account
-        fields = ('id', 'name', 'user_id', 'balances', 'last_transaction_date', 'last_save_date')
+        fields = ('id', 'name', 'user_id', 'balances', 'last_transaction_date', 'last_save_date', 'xirr')
 
 
 class TransactionCreateSerializer(serializers.ModelSerializer):
@@ -118,3 +120,16 @@ class AccountPreferencesSerializer(serializers.ModelSerializer):
         account_id = self.context.get('account_id')
         validated_data['account_id'] = account_id
         return super().create(validated_data)
+
+
+class BuyCommandSerializer(serializers.Serializer):
+    ticker = serializers.CharField(max_length=5)
+    exchange_code = serializers.CharField(max_length=5)
+    quantity = serializers.IntegerField()
+    price = serializers.DecimalField(max_digits=13, decimal_places=2)
+    date = serializers.DateTimeField()
+
+    def create(self, validated_data):
+        account_id = self.context.get('account_id')
+        date = validated_data.pop('date')
+        return ams.services.models.BuyCommand(account_id, date=date, **validated_data)

@@ -1,10 +1,11 @@
 import datetime
 
 import pytz
+from django.db import transaction
 from pytz import timezone
 
 from ams import models
-from ams.services import eod_service
+from ams.services import eod_service, account_balance_service
 
 
 def add_stock_transaction_to_balance(stock_transaction, account):
@@ -66,10 +67,13 @@ def update_stock_price(utc_now=datetime.datetime.utcnow()):
         if not (window_start <= utc_closing_time < window_end):
             continue
         stocks = models.Stock.objects.filter(exchange=exchange)
+        if len(stocks) == 0:
+            continue
+        current_prices = eod_service.get_bulk_last_day_price(stocks, exchange, utc_closing_time)
         for stock in stocks:
-            current_price = eod_service.get_current_price(stock, utc_closing_time)
-            if not current_price:
+            if stock.ticker not in current_prices:
                 continue
+            current_price = current_prices[stock.ticker]
             stock_balances = models.StockBalance.objects.filter(isin=stock.isin)
             for stock_balance in stock_balances:
                 stock_transaction = models.StockTransaction.objects.create(
@@ -124,3 +128,41 @@ def rebuild_stock_balance(stock_balance, rebuild_date):
         update_stock_balance(transaction, stock_balance)
     stock_balance.last_save_date = yesterday
     stock_balance.save()
+
+
+@transaction.atomic
+def buy_stocks(buy_command):
+    try:
+        account = models.Account.objects.get(id=buy_command.account_id)
+    except models.Account.DoesNotExist:
+        raise Exception('Account does not exist.')
+    try:
+        exchange = models.Exchange.objects.get(code=buy_command.exchange_code)
+    except models.Exchange.DoesNotExist:
+        raise Exception('Exchange does not exist.')
+    try:
+        stock = models.Stock.objects.get(ticker=buy_command.ticker, exchange=exchange)
+    except models.Stock.DoesNotExist:
+        search_result = eod_service.search(buy_command.ticker + '.' + buy_command.exchange_code)
+        if len(search_result) == 0:
+            raise Exception('Stock does not exist.')
+        stock_from_api = search_result[0]
+        stock = models.Stock.objects.create(
+            isin=stock_from_api['ISIN'],
+            ticker=buy_command.ticker,
+            name=stock_from_api['Name'],
+            currency=stock_from_api['Currency'],
+            exchange=exchange
+        )
+    stock_transaction = models.StockTransaction(
+        account=account,
+        isin=stock.isin,
+        quantity=buy_command.quantity,
+        price=buy_command.price,
+        transaction_type='buy',
+        date=buy_command.date
+    )
+
+    stock_transaction.save()
+    update_stock_balance(stock_transaction, account)
+    account_balance_service.add_transaction_from_stock(stock_transaction, stock, account)

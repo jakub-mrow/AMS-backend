@@ -7,6 +7,7 @@ class Account(models.Model):
     name = models.CharField(max_length=255)
     last_transaction_date = models.DateTimeField(blank=True, null=True)
     last_save_date = models.DateTimeField(blank=True, null=True)
+    xirr = models.DecimalField(max_digits=17, decimal_places=10, blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.username}'s {self.name} account"
@@ -130,3 +131,4 @@ class AccountPreferences(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='account_preferences', unique=True)
     base_currency = models.CharField(max_length=3)
     tax_currency = models.CharField(max_length=3)
+
