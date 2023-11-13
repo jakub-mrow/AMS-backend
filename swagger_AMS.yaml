@@ -470,6 +470,7 @@ paths:
         '204':
           description: No content
 
+  #Stocks
   /api/search:
     get:
       tags:
@@ -503,9 +504,34 @@ paths:
                   previousClose: 66.45
                   previousCloseDate: '2023-10-18'
 
+  #Exchanges
+  /api/exchanges:
+    get:
+      tags:
+        - Exchanges
+      summary: Get all exchanges
+      description: Get list of all exchanges in the system
+      operationId: getExchanges
+
+      responses:
+        '200':
+          description: OK
+          content:
+
+            application/json:
+              example:
+                - id: 48
+                  name: Xetra
+                  mic: XETR
+                  Country: Germany
+                  code: XETRA
+                  timezone: Europe/Berlin
+                  opening_hour: 09:00:00
+                  closing_hour: '17:30:00'
 
 tags:
   - name: Authorization
   - name: Accounts
   - name: Transactions
   - name: Stocks
+  - name: Exchanges
