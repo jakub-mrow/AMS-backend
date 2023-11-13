@@ -114,3 +114,22 @@ def get_current_currency_prices(pairs):
     except Exception as e:
         logger.exception(e)
         return None
+
+
+def get_price_changes(stock, begin, end):
+    params = {
+        'api_token': EOD_TOKEN,
+        'fmt': 'json',
+        'from': begin.strftime('%Y-%m-%d'),
+        'to': end.strftime('%Y-%m-%d')
+
+    }
+    url = f'{EOD_API_URL}/eod/{stock.ticker}.{stock.exchange.code}'
+
+    try:
+        response = requests.get(url, timeout=10.0, params=params)
+        data = response.json()
+        return data
+    except Exception as e:
+        logger.exception(e)
+        return []
