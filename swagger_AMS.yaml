@@ -523,7 +523,7 @@ paths:
                 - id: 48
                   name: Xetra
                   mic: XETR
-                  Country: Germany
+                  country: Germany
                   code: XETRA
                   timezone: Europe/Berlin
                   opening_hour: 09:00:00
