@@ -16,7 +16,7 @@ from ams.serializers import ExchangeSerializer
 from ams.services import stock_balance_service, eod_service
 from ams.services.account_balance_service import add_transaction_from_stock, rebuild_account_balance, \
     add_transaction_to_account_balance
-from ams.services.stock_balance_service import update_stock_balance, update_stock_price
+from ams.services.stock_balance_service import update_stock_price
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -230,9 +230,9 @@ class StockTransactionViewSet(viewsets.ViewSet):
 
         try:
             with transaction.atomic():
-                serializer.save()
-                update_stock_balance(serializer.instance, account)
-                add_transaction_from_stock(serializer.instance, stock, account)
+                stock_transaction = serializer.save()
+                stock_balance_service.add_stock_transaction_to_balance(stock_transaction, account)
+                add_transaction_from_stock(stock_transaction, stock, account)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
@@ -304,6 +304,32 @@ class StockBalanceViewSet(viewsets.ViewSet):
 
         stock_balances = models.StockBalance.objects.filter(account=account)
         serializer = serializers.StockBalanceDtoSerializer(stock_balances, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['GET'])
+    def history(self, request, pk, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        from_date = request.query_params.get('from')
+        to_date = request.query_params.get('to')
+
+        if from_date and to_date:
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account,
+                                                                                date__gte=from_date,
+                                                                                date__lte=to_date).order_by('date')
+        elif from_date:
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account,
+                                                                                date__gte=from_date).order_by('date')
+        elif to_date:
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account,
+                                                                                date__lte=to_date).order_by('date')
+        else:
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account).order_by(
+                'date')
+        serializer = serializers.StockBalanceHistoryDtoSerializer(stock_balance_histories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

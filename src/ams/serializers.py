@@ -100,6 +100,15 @@ class StockBalanceDtoSerializer(serializers.ModelSerializer):
         return data
 
 
+class StockBalanceHistoryDtoSerializer(serializers.ModelSerializer):
+    value = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
+    result = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
+
+    class Meta:
+        model = models.StockBalanceHistory
+        fields = ('isin', 'date', 'quantity', 'value', 'result')
+
+
 class AccountPreferencesSerializer(serializers.ModelSerializer):
     account_id = serializers.IntegerField(source='account.id', read_only=True)
 
