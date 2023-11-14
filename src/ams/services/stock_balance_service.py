@@ -8,7 +8,7 @@ from ams import models
 from ams.services import eod_service, account_balance_service
 
 
-def add_stock_transaction_to_balance(stock_transaction, account):
+def add_stock_transaction_to_balance(stock_transaction, stock, account):
     stock_balance, created = models.StockBalance.objects.get_or_create(
         isin=stock_transaction.isin,
         account=account,
@@ -19,9 +19,13 @@ def add_stock_transaction_to_balance(stock_transaction, account):
         }
     )
     if created:
+        fetch_missing_price_changes(stock_balance, stock, stock_transaction.date.date())
         rebuild_stock_balance(stock_balance, stock_transaction.date.date())
     else:
-        if stock_balance.last_save_date >= stock_transaction.date.date():
+        if not stock_balance.first_event_date or stock_balance.first_event_date > stock_transaction.date.date():
+            fetch_missing_price_changes(stock_balance, stock, stock_transaction.date.date())
+            rebuild_stock_balance(stock_balance, stock_transaction.date.date())
+        elif stock_balance.last_save_date >= stock_transaction.date.date():
             rebuild_stock_balance(stock_balance, stock_transaction.date.date())
         elif stock_balance.last_transaction_date > stock_transaction.date:
             rebuild_stock_balance(stock_balance, datetime.datetime.now().date())
@@ -80,12 +84,30 @@ def update_stock_price(utc_now=datetime.datetime.utcnow()):
                     isin=stock_balance.isin,
                     account=stock_balance.account,
                     transaction_type='price',
-                    quantity=stock_balance.quantity,
+                    quantity=0,
                     price=current_price,
                     date=utc_closing_time,
                 )
                 stock_transaction.save()
-                add_stock_transaction_to_balance(stock_transaction, stock_balance.account)
+                add_stock_transaction_to_balance(stock_transaction, stock, stock_balance.account)
+
+
+def fetch_missing_price_changes(stock_balance, stock, begin):
+    end = stock_balance.first_event_date if stock_balance.first_event_date else datetime.datetime.now().date()
+    end = end - datetime.timedelta(days=1)
+    price_changes = eod_service.get_price_changes(stock, begin, end)
+
+    for price_change in price_changes:
+        stock_transaction = models.StockTransaction.objects.create(
+            isin=stock_balance.isin,
+            account=stock_balance.account,
+            transaction_type='price',
+            quantity=0,
+            price=price_change['close'],
+            date=price_change['date'],
+        )
+        stock_transaction.save()
+    stock_balance.first_event_date = begin
 
 
 def rebuild_stock_balance(stock_balance, rebuild_date):
@@ -164,5 +186,5 @@ def buy_stocks(buy_command):
     )
 
     stock_transaction.save()
-    add_stock_transaction_to_balance(stock_transaction, account)
+    add_stock_transaction_to_balance(stock_transaction, stock, account)
     account_balance_service.add_transaction_from_stock(stock_transaction, stock, account)
