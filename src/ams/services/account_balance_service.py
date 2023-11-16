@@ -49,12 +49,12 @@ def rebuild_account_balance(account, transaction_date):
         balance.save()
 
 
-def add_transaction_from_stock(stock_transaction, stock, account):
+def add_transaction_from_stock(stock_transaction, stock, account, pay_currency, exchange_rate):
     account_transaction = models.Transaction.objects.create(
         account_id=stock_transaction.account_id,
         type=stock_transaction.transaction_type,
-        amount=stock_transaction.quantity * stock_transaction.price,
-        currency=stock.currency,
+        amount=stock_transaction.quantity * stock_transaction.price * exchange_rate,
+        currency=pay_currency,
         date=stock_transaction.date,
         account=account,
         correlation_id=stock_transaction.id
