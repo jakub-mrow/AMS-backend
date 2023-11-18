@@ -1,4 +1,3 @@
-import pytz
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
@@ -27,6 +26,7 @@ class AccountSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source='user.id')
     balances = AccountBalanceSerializer(many=True)
     xirr = serializers.DecimalField(max_digits=17, decimal_places=10, coerce_to_string=False)
+
     class Meta:
         model = models.Account
         fields = ('id', 'name', 'user_id', 'balances', 'last_transaction_date', 'last_save_date', 'xirr')
@@ -83,12 +83,12 @@ class StockTransactionSerializer(serializers.ModelSerializer):
 
 
 class StockBalanceDtoSerializer(serializers.ModelSerializer):
-    value = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
+    price = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
     result = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
 
     class Meta:
         model = models.StockBalance
-        fields = ('isin', 'quantity', 'value', 'result')
+        fields = ('isin', 'quantity', 'price', 'result')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -101,12 +101,12 @@ class StockBalanceDtoSerializer(serializers.ModelSerializer):
 
 
 class StockBalanceHistoryDtoSerializer(serializers.ModelSerializer):
-    value = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
+    price = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
     result = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
 
     class Meta:
         model = models.StockBalanceHistory
-        fields = ('isin', 'date', 'quantity', 'value', 'result')
+        fields = ('isin', 'date', 'quantity', 'price', 'result')
 
 
 class AccountPreferencesSerializer(serializers.ModelSerializer):
