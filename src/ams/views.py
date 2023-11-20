@@ -232,13 +232,8 @@ class StockTransactionViewSet(viewsets.ViewSet):
             with transaction.atomic():
                 stock_transaction = serializer.save()
                 stock_balance_service.add_stock_transaction_to_balance(stock_transaction, stock, account)
-                pay_currency = serializer.validated_data.get('pay_currency', stock.currency)
-                if pay_currency != stock.currency:
-                    exchange_rate = serializer.validated_data.get('exchange_rate')
-                else:
-                    exchange_rate = 1
 
-                add_transaction_from_stock(stock_transaction, stock, account, pay_currency, exchange_rate)
+                add_transaction_from_stock(stock_transaction, stock, account)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
