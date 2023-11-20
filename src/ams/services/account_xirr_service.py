@@ -69,7 +69,7 @@ def calculate_account_xirr(account):
             currency_pair = f'{stock.currency}{base_currency}'
             currency_difference = currency_pairs[currency_pair]
 
-            balance_amount = float(stock_balance.value) * currency_difference
+            balance_amount = float(stock_balance.price) * stock_balance.quantity * currency_difference
             balance_sum += balance_amount
 
         account_balances = AccountBalance.objects.filter(account_id=account.id)
