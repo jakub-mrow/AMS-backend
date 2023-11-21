@@ -88,6 +88,8 @@ class StockTransaction(models.Model):
     price = models.DecimalField(max_digits=13, decimal_places=2)
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPE_CHOICES)
     date = models.DateTimeField()
+    pay_currency = models.CharField(max_length=3, null=True, blank=True)
+    exchange_rate = models.DecimalField(max_digits=13, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return f"{self.transaction_type} of {self.quantity} for {self.price} for {self.account_id}"

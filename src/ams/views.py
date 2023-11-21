@@ -232,6 +232,7 @@ class StockTransactionViewSet(viewsets.ViewSet):
             with transaction.atomic():
                 stock_transaction = serializer.save()
                 stock_balance_service.add_stock_transaction_to_balance(stock_transaction, stock, account)
+
                 add_transaction_from_stock(stock_transaction, stock, account)
         except Exception as e:
             return Response({"error": str(e)}, status=400)

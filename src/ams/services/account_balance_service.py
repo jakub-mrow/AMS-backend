@@ -50,11 +50,21 @@ def rebuild_account_balance(account, transaction_date):
 
 
 def add_transaction_from_stock(stock_transaction, stock, account):
+    pay_currency = stock_transaction.pay_currency
+    exchange_rate = stock_transaction.exchange_rate
+
+    if pay_currency and exchange_rate and pay_currency != exchange_rate:
+        amount = stock_transaction.quantity * stock_transaction.price * exchange_rate
+        currency = pay_currency
+    else:
+        amount = stock_transaction.quantity * stock_transaction.price
+        currency = stock.currency
+
     account_transaction = models.Transaction.objects.create(
         account_id=stock_transaction.account_id,
         type=stock_transaction.transaction_type,
-        amount=stock_transaction.quantity * stock_transaction.price,
-        currency=stock.currency,
+        amount=amount,
+        currency=currency,
         date=stock_transaction.date,
         account=account,
         correlation_id=stock_transaction.id
