@@ -251,7 +251,9 @@ class StockTransactionViewSet(viewsets.ViewSet):
             stock_transactions = models.StockTransaction.objects.filter(account=account, isin=isin).order_by('-date')
         else:
             stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
-        stock_transactions = stock_transactions.filter(transaction_type__in=['buy', 'sell'])
+        stock_transactions = stock_transactions.filter(
+            transaction_type__in=[models.StockTransaction.BUY, models.StockTransaction.SELL,
+                                  models.StockTransaction.DIVIDEND])
 
         serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
 

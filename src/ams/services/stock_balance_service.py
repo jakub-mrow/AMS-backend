@@ -43,6 +43,8 @@ def update_stock_balance(stock_transaction, stock_balance):
         stock_balance.quantity -= stock_transaction.quantity
     elif stock_transaction.transaction_type == 'price':
         stock_balance.price = stock_transaction.price
+    elif stock_transaction.transaction_type == 'dividend':
+        pass
 
     if not stock_balance.last_transaction_date or stock_balance.last_transaction_date < stock_transaction.date:
         stock_balance.last_transaction_date = stock_transaction.date

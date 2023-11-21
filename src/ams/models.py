@@ -32,11 +32,13 @@ class Transaction(models.Model):
     WITHDRAWAL = 'withdrawal'
     BUY = 'buy'
     SELL = 'sell'
+    DIVIDEND = 'dividend'
     TRANSACTION_TYPE_CHOICES = (
         (DEPOSIT, 'Deposit'),
         (WITHDRAWAL, 'Withdrawal'),
         (BUY, 'Buy'),
-        (SELL, 'Sell')
+        (SELL, 'Sell'),
+        (DIVIDEND, 'dividend')
     )
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='transactions')
@@ -76,10 +78,12 @@ class StockTransaction(models.Model):
     BUY = 'buy'
     SELL = 'sell'
     PRICE = 'price'
+    DIVIDEND = 'dividend'
     TRANSACTION_TYPE_CHOICES = (
         (BUY, 'Buy'),
         (SELL, 'Sell'),
-        (PRICE, 'Price')
+        (PRICE, 'Price'),
+        (DIVIDEND, 'Dividend')
     )
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='stock_transaction')
