@@ -112,7 +112,7 @@ class StockBalance(models.Model):
     isin = models.CharField(max_length=12)
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='stock_balance')
     quantity = models.IntegerField()
-    value = models.DecimalField(max_digits=13, decimal_places=2)
+    price = models.DecimalField(max_digits=13, decimal_places=2)
     result = models.DecimalField(max_digits=13, decimal_places=2)
     last_save_date = models.DateField(null=True)
     first_event_date = models.DateField(null=True)
@@ -127,7 +127,7 @@ class StockBalanceHistory(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     date = models.DateField()
     quantity = models.IntegerField()
-    value = models.DecimalField(max_digits=13, decimal_places=2)
+    price = models.DecimalField(max_digits=13, decimal_places=2)
     result = models.DecimalField(max_digits=13, decimal_places=2)
 
 
