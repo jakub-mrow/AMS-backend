@@ -1,7 +1,5 @@
 import pytest
 
-from django.contrib.auth.models import User
-
 from rest_framework.test import APIClient
 
 
@@ -11,7 +9,7 @@ def client():
     username = 'unknown'
     password = 'unknown123123'
     email = 'unknown@email.com'
-    
+
     register_data = {'username': username, 'password': password, 'email': email}
     client.post('/auth/register', data=register_data)
 

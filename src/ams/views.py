@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from ams import models, serializers
 from ams.permissions import IsObjectOwner
 from ams.serializers import ExchangeSerializer
-from ams.services import stock_balance_service, eod_service
+from ams.services import stock_balance_service, eod_service, account_history_service
 from ams.services.account_balance_service import add_transaction_from_stock, rebuild_account_balance, \
     add_transaction_to_account_balance
 from ams.services.stock_balance_service import update_stock_price
@@ -358,3 +358,18 @@ def update_stock(request):
     else:
         update_stock_price()
     return Response({"msg": "Stock price updated"}, status=status.HTTP_200_OK)
+
+
+class AccountHistoryView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        dtos = account_history_service.get_account_history_dtos(account)
+
+        serializer = serializers.AccountHistoryDtoSerializer(dtos, many=True)
+        return Response(serializer.data)
