@@ -259,6 +259,17 @@ class StockTransactionViewSet(viewsets.ViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def destroy(self, request, account_id, pk=None):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_transaction = get_object_or_404(models.StockTransaction, pk=pk, account=account)
+        stock_balance_service.delete_stock_transaction(stock_transaction)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     @action(detail=False, methods=['POST'])
     def buy(self, request, account_id):
         serializer = serializers.BuyCommandSerializer(data=request.data, context={'account_id': account_id})

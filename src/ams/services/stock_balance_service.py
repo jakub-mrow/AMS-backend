@@ -188,3 +188,14 @@ def buy_stocks(buy_command):
     stock_transaction.save()
     add_stock_transaction_to_balance(stock_transaction, stock, account)
     account_balance_service.add_transaction_from_stock(stock_transaction, stock, account)
+
+
+@transaction.atomic
+def delete_stock_transaction(stock_transaction):
+    stock_balance = models.StockBalance.objects.get(isin=stock_transaction.isin, account=stock_transaction.account)
+    stock_transaction.delete()
+    rebuild_stock_balance(stock_balance, stock_transaction.date.date())
+
+    if models.Transaction.objects.filter(correlation_id=stock_transaction.id).exists():
+        # TODO: delete correlated account transaction and rebuild
+        pass
