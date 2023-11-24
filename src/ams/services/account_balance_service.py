@@ -39,7 +39,7 @@ def rebuild_account_balance(account, transaction_date):
 
     desired_date = date(transaction_date.year, transaction_date.month, transaction_date.day)
 
-    transactions_on_date = models.Transaction.objects.filter(date__date=desired_date).order_by('date')
+    transactions_on_date = models.Transaction.objects.filter(date__date=desired_date, account_id=account.id).order_by('date')
 
     for transaction in transactions_on_date:
         add_transaction_to_account_balance(transaction, account, account_balances_by_currency[transaction.currency])
