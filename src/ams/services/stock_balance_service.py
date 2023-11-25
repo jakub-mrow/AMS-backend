@@ -182,7 +182,9 @@ def buy_stocks(buy_command):
         quantity=buy_command.quantity,
         price=buy_command.price,
         transaction_type='buy',
-        date=buy_command.date
+        date=buy_command.date,
+        pay_currency=buy_command.pay_currency,
+        exchange_rate=buy_command.exchange_rate,
     )
 
     stock_transaction.save()
