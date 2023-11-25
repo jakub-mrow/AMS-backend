@@ -128,7 +128,9 @@ def rebuild_stock_balance(stock_balance, rebuild_date):
         stock_balance.price = 0
         stock_balance.result = 0
 
-    transactions_on_date = models.StockTransaction.objects.filter(date__gte=rebuild_date).order_by('date')
+    transactions_on_date = models.StockTransaction.objects.filter(isin=stock_balance.isin,
+                                                                  account=stock_balance.account,
+                                                                  date__gte=rebuild_date).order_by('date')
     today = datetime.datetime.now().date()
     yesterday = today - datetime.timedelta(days=1)
     for day in range((yesterday - rebuild_date).days + 1):
@@ -144,7 +146,7 @@ def rebuild_stock_balance(stock_balance, rebuild_date):
             result=stock_balance.result,
         )
 
-    today_transactions = models.StockTransaction.objects.filter(date__date=today).order_by('date')
+    today_transactions = transactions_on_date.filter(date__date=today).order_by('date')
 
     for transaction in today_transactions:
         update_stock_balance(transaction, stock_balance)
