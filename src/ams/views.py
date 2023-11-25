@@ -101,30 +101,16 @@ class TransactionViewSet(viewsets.ViewSet):
         serializer = serializers.TransactionCreateSerializer(data=request.data, context={'account_id': account.id})
         serializer.is_valid(raise_exception=True)
         transaction = serializer.save()
-        try:
-            account_balance = models.AccountBalance.objects.get(
-                account_id=transaction.account_id,
-                currency=transaction.currency
-            )
+        account_balance, created = models.AccountBalance.objects.get_or_create(
+            account_id=transaction.account_id,
+            currency=transaction.currency,
+            defaults={
+                'amount': 0,
+            }
+        )
 
-        except models.AccountBalance.DoesNotExist:
-            new_account_balance = models.AccountBalance(
-                account_id=transaction.account_id,
-                currency=transaction.currency,
-                amount=0.00
-            )
-            new_account_balance.save()
-
-            account_balance = models.AccountBalance.objects.get(
-                account_id=transaction.account_id,
-                currency=transaction.currency
-            )
-
-        if account.last_save_date and account.last_transaction_date.date:
-            if account.last_transaction_date.date() > transaction.date.date():
-                rebuild_account_balance(account, transaction.date)
-            else:
-                add_transaction_to_account_balance(transaction, account, account_balance)
+        if account.last_transaction_date > transaction.date or created:
+            rebuild_account_balance(account, transaction.date)
         else:
             add_transaction_to_account_balance(transaction, account, account_balance)
 
