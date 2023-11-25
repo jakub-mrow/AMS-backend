@@ -185,6 +185,7 @@ def buy_stocks(buy_command):
         date=buy_command.date,
         pay_currency=buy_command.pay_currency,
         exchange_rate=buy_command.exchange_rate,
+        commission=buy_command.commission
     )
 
     stock_transaction.save()

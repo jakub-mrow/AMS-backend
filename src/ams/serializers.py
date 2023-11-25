@@ -136,6 +136,7 @@ class BuyCommandSerializer(serializers.Serializer):
     date = serializers.DateTimeField()
     pay_currency = serializers.CharField(max_length=3, required=False, allow_null=True)
     exchange_rate = serializers.DecimalField(max_digits=13, decimal_places=2, required=False, allow_null=True)
+    commission = serializers.DecimalField(max_digits=17, decimal_places=2, required=False, allow_null=True)
 
     def create(self, validated_data):
         account_id = self.context.get('account_id')
