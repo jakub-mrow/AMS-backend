@@ -53,12 +53,13 @@ def rebuild_account_balance(account, transaction_date):
 def add_transaction_from_stock(stock_transaction, stock, account):
     pay_currency = stock_transaction.pay_currency
     exchange_rate = stock_transaction.exchange_rate
+    commission = stock_transaction.commission if stock_transaction.commission else 0
 
     if pay_currency and exchange_rate and pay_currency != exchange_rate:
-        amount = stock_transaction.quantity * stock_transaction.price * exchange_rate
+        amount = (stock_transaction.quantity * stock_transaction.price + commission) * exchange_rate
         currency = pay_currency
     else:
-        amount = stock_transaction.quantity * stock_transaction.price
+        amount = stock_transaction.quantity * stock_transaction.price + commission
         currency = stock.currency
 
     account_transaction = models.Transaction.objects.create(

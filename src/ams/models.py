@@ -94,6 +94,7 @@ class StockTransaction(models.Model):
     date = models.DateTimeField()
     pay_currency = models.CharField(max_length=3, null=True, blank=True)
     exchange_rate = models.DecimalField(max_digits=13, decimal_places=2, null=True, blank=True)
+    commission = models.DecimalField(max_digits=13, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return f"{self.transaction_type} of {self.quantity} for {self.price} for {self.account_id}"
