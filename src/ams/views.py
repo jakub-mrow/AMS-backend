@@ -14,8 +14,8 @@ from ams import models, serializers
 from ams.permissions import IsObjectOwner
 from ams.serializers import ExchangeSerializer
 from ams.services import stock_balance_service, eod_service
-from ams.services.account_balance_service import add_transaction_from_stock, rebuild_account_balance, \
-    add_transaction_to_account_balance, rebuild_account_balance_history
+from ams.services.account_balance_service import (add_transaction_from_stock, add_transaction_to_account_balance,
+                                                  rebuild_account_balance)
 from ams.services.stock_balance_service import update_stock_price
 
 logger = logging.getLogger(__name__)
@@ -121,10 +121,8 @@ class TransactionViewSet(viewsets.ViewSet):
             )
 
         if account.last_save_date and account.last_transaction_date.date:
-            if account.last_transaction_date.date() > transaction.date.date() > account.last_save_date.date():
+            if account.last_transaction_date.date() > transaction.date.date():
                 rebuild_account_balance(account, transaction.date)
-            elif transaction.date < account.last_save_date:
-                rebuild_account_balance_history(account, transaction.date)
             else:
                 add_transaction_to_account_balance(transaction, account, account_balance)
         else:
