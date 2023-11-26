@@ -1,5 +1,7 @@
 from datetime import timedelta, datetime
 
+from django.db import transaction
+
 from ams import models, tasks
 
 
@@ -111,3 +113,14 @@ def rebuild_account_balance(account, rebuild_date):
         account_balance.save()
     account.last_save_date = yesterday
     account.save()
+
+
+def modify_transaction(account_transaction, old_transaction_date):
+    older_transaction_date = min(old_transaction_date.date(), account_transaction.date.date())
+    rebuild_account_balance(account_transaction.account, older_transaction_date)
+
+
+@transaction.atomic
+def delete_transaction(account_transaction):
+    account_transaction.delete()
+    rebuild_account_balance(account_transaction.account, account_transaction.date.date())

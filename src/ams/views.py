@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from ams import models, serializers
 from ams.permissions import IsObjectOwner
 from ams.serializers import ExchangeSerializer
-from ams.services import stock_balance_service, eod_service, account_history_service
+from ams.services import stock_balance_service, eod_service, account_history_service, account_balance_service
 from ams.services.account_balance_service import (add_transaction_from_stock, add_transaction_to_account_balance)
 from ams.services.stock_balance_service import update_stock_price
 
@@ -120,25 +120,34 @@ class TransactionViewSet(viewsets.ViewSet):
 
         return Response(serializer.data)
 
+    def update(self, request, account_id, pk=None):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        account_transaction = get_object_or_404(models.Transaction, pk=pk, account=account)
+        old_account_transaction_date = account_transaction.date
+
+        serializer = serializers.TransactionSerializer(account_transaction, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            with transaction.atomic():
+                account_transaction = serializer.save()
+                account_balance_service.modify_transaction(account_transaction, old_account_transaction_date)
+        except Exception as e:
+            return Response({"error": "Account transaction not modified."}, status=400)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def destroy(self, request, account_id, pk=None):
         try:
             account = models.Account.objects.get(pk=account_id, user=request.user)
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        transaction = get_object_or_404(models.Transaction, pk=pk, account=account)
-        account_balance = models.AccountBalance.objects.get(
-            account_id=transaction.account_id,
-            currency=transaction.currency
-        )
-
-        if transaction.type == "deposit":
-            account_balance.amount -= transaction.amount
-        elif transaction.type == "withdrawal":
-            account_balance.amount += transaction.amount
-
-        account_balance.save()
-        transaction.delete()
+        account_transaction = get_object_or_404(models.Transaction, pk=pk, account=account)
+        account_balance_service.delete_transaction(account_transaction)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
