@@ -228,4 +228,4 @@ def get_stock_price_in_base_currency(stock_balance, stock):
     currency_pair = f'{stock_currency}{base_currency}'
     rates = eod_service.get_current_currency_price(currency_pair)
     value_in_base = stock_balance.price * decimal.Decimal(rates[currency_pair])
-    return value_in_base.quantize(decimal.Decimal('0.01'))
+    return value_in_base.quantize(decimal.Decimal('0.01')), base_currency

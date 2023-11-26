@@ -366,8 +366,8 @@ class StockBalanceViewSet(viewsets.ViewSet):
 
         stock_balance = models.StockBalance.objects.filter(isin=pk, account=account).first()
         try:
-            value = stock_balance_service.get_stock_price_in_base_currency(stock_balance, stock)
-            return Response({"value": value}, status=status.HTTP_200_OK)
+            price, currency = stock_balance_service.get_stock_price_in_base_currency(stock_balance, stock)
+            return Response({"price": price, "currency": currency}, status=status.HTTP_200_OK)
         except Exception as e:
             logger.exception(e)
             return Response({"error": "Problem with getting stock value"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
