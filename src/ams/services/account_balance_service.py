@@ -4,7 +4,7 @@ from ams import tasks
 
 
 def add_transaction_to_account_balance(transaction, account, account_balance):
-    if transaction.type == 'deposit' or transaction.type == 'sell':
+    if transaction.type == 'deposit' or transaction.type == 'sell' or transaction.type == 'dividend':
         account_balance.amount += transaction.amount
     elif transaction.type == 'withdrawal' or transaction.type == 'buy':
         account_balance.amount -= transaction.amount
@@ -20,11 +20,21 @@ def add_transaction_to_account_balance(transaction, account, account_balance):
 
 
 def add_transaction_from_stock(stock_transaction, stock, account):
+    pay_currency = stock_transaction.pay_currency
+    exchange_rate = stock_transaction.exchange_rate
+
+    if pay_currency and exchange_rate and pay_currency != exchange_rate:
+        amount = stock_transaction.quantity * stock_transaction.price * exchange_rate
+        currency = pay_currency
+    else:
+        amount = stock_transaction.quantity * stock_transaction.price
+        currency = stock.currency
+
     account_transaction = models.Transaction.objects.create(
         account_id=stock_transaction.account_id,
         type=stock_transaction.transaction_type,
-        amount=stock_transaction.quantity * stock_transaction.price,
-        currency=stock.currency,
+        amount=amount,
+        currency=currency,
         date=stock_transaction.date,
         account=account,
         correlation_id=stock_transaction.id

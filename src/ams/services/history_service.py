@@ -37,7 +37,7 @@ def save_stock_balance_history():
             account=stock_balance.account,
             date=history_date,
             quantity=stock_balance.quantity,
-            value=stock_balance.value,
+            price=stock_balance.price,
             result=stock_balance.result,
         )
         stock_balance.last_save_date = history_date

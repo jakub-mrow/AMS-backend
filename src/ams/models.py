@@ -32,11 +32,13 @@ class Transaction(models.Model):
     WITHDRAWAL = 'withdrawal'
     BUY = 'buy'
     SELL = 'sell'
+    DIVIDEND = 'dividend'
     TRANSACTION_TYPE_CHOICES = (
         (DEPOSIT, 'Deposit'),
         (WITHDRAWAL, 'Withdrawal'),
         (BUY, 'Buy'),
-        (SELL, 'Sell')
+        (SELL, 'Sell'),
+        (DIVIDEND, 'dividend')
     )
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='transactions')
@@ -76,10 +78,12 @@ class StockTransaction(models.Model):
     BUY = 'buy'
     SELL = 'sell'
     PRICE = 'price'
+    DIVIDEND = 'dividend'
     TRANSACTION_TYPE_CHOICES = (
         (BUY, 'Buy'),
         (SELL, 'Sell'),
-        (PRICE, 'Price')
+        (PRICE, 'Price'),
+        (DIVIDEND, 'Dividend')
     )
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='stock_transaction')
@@ -88,6 +92,8 @@ class StockTransaction(models.Model):
     price = models.DecimalField(max_digits=13, decimal_places=2)
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPE_CHOICES)
     date = models.DateTimeField()
+    pay_currency = models.CharField(max_length=3, null=True, blank=True)
+    exchange_rate = models.DecimalField(max_digits=13, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return f"{self.transaction_type} of {self.quantity} for {self.price} for {self.account_id}"
@@ -108,7 +114,7 @@ class StockBalance(models.Model):
     isin = models.CharField(max_length=12)
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='stock_balance')
     quantity = models.IntegerField()
-    value = models.DecimalField(max_digits=13, decimal_places=2)
+    price = models.DecimalField(max_digits=13, decimal_places=2)
     result = models.DecimalField(max_digits=13, decimal_places=2)
     last_save_date = models.DateField(null=True)
     first_event_date = models.DateField(null=True)
@@ -123,7 +129,7 @@ class StockBalanceHistory(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     date = models.DateField()
     quantity = models.IntegerField()
-    value = models.DecimalField(max_digits=13, decimal_places=2)
+    price = models.DecimalField(max_digits=13, decimal_places=2)
     result = models.DecimalField(max_digits=13, decimal_places=2)
 
 
@@ -131,4 +137,3 @@ class AccountPreferences(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='account_preferences', unique=True)
     base_currency = models.CharField(max_length=3)
     tax_currency = models.CharField(max_length=3)
-

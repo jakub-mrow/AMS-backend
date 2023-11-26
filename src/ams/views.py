@@ -219,6 +219,7 @@ class StockTransactionViewSet(viewsets.ViewSet):
             with transaction.atomic():
                 stock_transaction = serializer.save()
                 stock_balance_service.add_stock_transaction_to_balance(stock_transaction, stock, account)
+
                 add_transaction_from_stock(stock_transaction, stock, account)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
@@ -237,7 +238,9 @@ class StockTransactionViewSet(viewsets.ViewSet):
             stock_transactions = models.StockTransaction.objects.filter(account=account, isin=isin).order_by('-date')
         else:
             stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
-        stock_transactions = stock_transactions.filter(transaction_type__in=['buy', 'sell'])
+        stock_transactions = stock_transactions.filter(
+            transaction_type__in=[models.StockTransaction.BUY, models.StockTransaction.SELL,
+                                  models.StockTransaction.DIVIDEND])
 
         serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
 
