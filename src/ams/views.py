@@ -9,13 +9,13 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from ams import tasks
 from ams import models, serializers
 from ams.permissions import IsObjectOwner
 from ams.serializers import ExchangeSerializer
 from ams.services import stock_balance_service, eod_service, account_history_service
-from ams.services.account_balance_service import add_transaction_from_stock, rebuild_account_balance, \
-    add_transaction_to_account_balance
+from ams.services.account_balance_service import (add_transaction_from_stock, add_transaction_to_account_balance,
+                                                  rebuild_account_balance)
 from ams.services.stock_balance_service import update_stock_price
 
 logger = logging.getLogger(__name__)
@@ -101,33 +101,20 @@ class TransactionViewSet(viewsets.ViewSet):
         serializer = serializers.TransactionCreateSerializer(data=request.data, context={'account_id': account.id})
         serializer.is_valid(raise_exception=True)
         transaction = serializer.save()
-        try:
-            account_balance = models.AccountBalance.objects.get(
-                account_id=transaction.account_id,
-                currency=transaction.currency
-            )
+        account_balance, created = models.AccountBalance.objects.get_or_create(
+            account_id=transaction.account_id,
+            currency=transaction.currency,
+            defaults={
+                'amount': 0,
+            }
+        )
 
-        except models.AccountBalance.DoesNotExist:
-            new_account_balance = models.AccountBalance(
-                account_id=transaction.account_id,
-                currency=transaction.currency,
-                amount=0.00
-            )
-            new_account_balance.save()
-
-            account_balance = models.AccountBalance.objects.get(
-                account_id=transaction.account_id,
-                currency=transaction.currency
-            )
-
-        if account.last_save_date and account.last_transaction_date.date:
-            if account.last_transaction_date.date() > transaction.date.date() > account.last_save_date.date():
-                rebuild_account_balance(account, transaction.date)
-            else:
-                add_transaction_to_account_balance(transaction, account, account_balance)
+        if account.last_transaction_date > transaction.date or created:
+            rebuild_account_balance(account, transaction.date)
         else:
             add_transaction_to_account_balance(transaction, account, account_balance)
 
+        tasks.calculate_account_xirr_task.delay(account.id)
         return Response({"msg": "Transaction created."}, status=status.HTTP_201_CREATED)
 
     def list(self, request, account_id):
@@ -256,6 +243,37 @@ class StockTransactionViewSet(viewsets.ViewSet):
                                   models.StockTransaction.DIVIDEND])
 
         serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def destroy(self, request, account_id, pk=None):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_transaction = get_object_or_404(models.StockTransaction, pk=pk, account=account)
+        stock_balance_service.delete_stock_transaction(stock_transaction)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def update(self, request, account_id, pk=None):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_transaction = get_object_or_404(models.StockTransaction, pk=pk, account=account)
+        old_stock_transaction_date = stock_transaction.date
+
+        serializer = serializers.StockTransactionSerializer(stock_transaction, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            with transaction.atomic():
+                stock_transaction = serializer.save()
+                stock_balance_service.modify_stock_transaction(stock_transaction, old_stock_transaction_date)
+        except Exception as e:
+            return Response({"error": "Stock transaction not modified."}, status=400)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 

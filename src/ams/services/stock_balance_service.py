@@ -128,7 +128,9 @@ def rebuild_stock_balance(stock_balance, rebuild_date):
         stock_balance.price = 0
         stock_balance.result = 0
 
-    transactions_on_date = models.StockTransaction.objects.filter(date__gte=rebuild_date).order_by('date')
+    transactions_on_date = models.StockTransaction.objects.filter(isin=stock_balance.isin,
+                                                                  account=stock_balance.account,
+                                                                  date__gte=rebuild_date).order_by('date')
     today = datetime.datetime.now().date()
     yesterday = today - datetime.timedelta(days=1)
     for day in range((yesterday - rebuild_date).days + 1):
@@ -144,7 +146,7 @@ def rebuild_stock_balance(stock_balance, rebuild_date):
             result=stock_balance.result,
         )
 
-    today_transactions = models.StockTransaction.objects.filter(date__date=today).order_by('date')
+    today_transactions = transactions_on_date.filter(date__date=today).order_by('date')
 
     for transaction in today_transactions:
         update_stock_balance(transaction, stock_balance)
@@ -182,9 +184,36 @@ def buy_stocks(buy_command):
         quantity=buy_command.quantity,
         price=buy_command.price,
         transaction_type='buy',
-        date=buy_command.date
+        date=buy_command.date,
+        pay_currency=buy_command.pay_currency,
+        exchange_rate=buy_command.exchange_rate,
+        commission=buy_command.commission
     )
 
     stock_transaction.save()
     add_stock_transaction_to_balance(stock_transaction, stock, account)
     account_balance_service.add_transaction_from_stock(stock_transaction, stock, account)
+
+
+def modify_stock_transaction(stock_transaction, old_stock_transaction_date):
+    stock_balance = models.StockBalance.objects.get(isin=stock_transaction.isin, account=stock_transaction.account)
+    stock = models.Stock.objects.get(isin=stock_transaction.isin)
+    older_transaction_date = min(old_stock_transaction_date.date(), stock_transaction.date.date())
+    if stock_balance.first_event_date > older_transaction_date:
+        fetch_missing_price_changes(stock_balance, stock, older_transaction_date)
+    rebuild_stock_balance(stock_balance, older_transaction_date)
+
+    if models.Transaction.objects.filter(correlation_id=stock_transaction.id).exists():
+        # TODO: modify correlated account transaction and rebuild
+        pass
+
+
+@transaction.atomic
+def delete_stock_transaction(stock_transaction):
+    stock_balance = models.StockBalance.objects.get(isin=stock_transaction.isin, account=stock_transaction.account)
+    stock_transaction.delete()
+    rebuild_stock_balance(stock_balance, stock_transaction.date.date())
+
+    if models.Transaction.objects.filter(correlation_id=stock_transaction.id).exists():
+        # TODO: delete correlated account transaction and rebuild
+        pass
