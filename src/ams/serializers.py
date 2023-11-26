@@ -142,3 +142,8 @@ class BuyCommandSerializer(serializers.Serializer):
         account_id = self.context.get('account_id')
         date = validated_data.pop('date')
         return ams.services.models.BuyCommand(account_id, date=date, **validated_data)
+
+
+class AccountHistoryDtoSerializer(serializers.Serializer):
+    amount = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
+    date = serializers.DateField()

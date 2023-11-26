@@ -13,9 +13,9 @@ router.register(r'stocks/(?P<exchange_id>\d+)', views.StockViewSet, "stocks_by_e
 router.register(r'stock/(?P<account_id>\d+)/transaction', views.StockTransactionViewSet, "transaction")
 router.register(r'stock_balances/(?P<account_id>\d+)', views.StockBalanceViewSet, "stock_balance")
 
-
 urlpatterns = [
     re_path("", include(router.urls)),
     re_path(r'search', views.StockSearchAPIView.as_view(), name='api-search'),
-    re_path(r'update_stock', views.update_stock, name='update_stock')
+    re_path(r'update_stock', views.update_stock, name='update_stock'),
+    re_path(r'accounts/(?P<account_id>\d+)/history', views.AccountHistoryView.as_view(), name="account_history"),
 ]

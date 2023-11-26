@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 import requests
 
@@ -64,7 +65,15 @@ def search(query):
     return data
 
 
+CURRENCY_PRICE_CACHE = dict()
+
+
 def get_current_currency_price(currency_pair):
+    global CURRENCY_PRICE_CACHE
+    now = datetime.now().date()
+    if currency_pair in CURRENCY_PRICE_CACHE and now == CURRENCY_PRICE_CACHE[currency_pair]['time']:
+        return {currency_pair: CURRENCY_PRICE_CACHE[currency_pair]['close']}
+
     params = {
         'api_token': EOD_TOKEN,
         'fmt': 'json'
@@ -74,12 +83,12 @@ def get_current_currency_price(currency_pair):
     try:
         response = requests.get(url, timeout=30.0, params=params)
         data = response.json()
-        print(data)
         if data['close'] == 'NA':
             logger.exception('No data for currencies pair')
             return None
         else:
             current_price = data['close']
+            CURRENCY_PRICE_CACHE[currency_pair] = {'close': current_price, 'time': now}
 
         return {currency_pair: current_price}
 
@@ -89,6 +98,20 @@ def get_current_currency_price(currency_pair):
 
 
 def get_current_currency_prices(pairs):
+    global CURRENCY_PRICE_CACHE
+    result = dict()
+    now = datetime.now().date()
+    pairs_copy = pairs.copy()
+    for pair in pairs_copy:
+        if pair in CURRENCY_PRICE_CACHE and now == CURRENCY_PRICE_CACHE[pair]['time']:
+            result[pair] = CURRENCY_PRICE_CACHE[pair]['close']
+            pairs.remove(pair)
+    if len(pairs) == 1:
+        result[pairs[0]] = get_current_currency_price(pairs[0])[pairs[0]]
+        return result
+    elif len(pairs) == 0:
+        return result
+
     params = {
         'api_token': EOD_TOKEN,
         'fmt': 'json',
@@ -96,17 +119,16 @@ def get_current_currency_prices(pairs):
     }
     url = f'{EOD_API_URL}/real-time/{pairs[0]}.FOREX'
 
-    result = dict()
     try:
         response = requests.get(url, timeout=30.0, params=params)
         data = response.json()
-        print(data)
         for item in data:
             if item['close'] == 'NA':
                 logging.exception('No data for currencies pair')
                 return None
             else:
                 current_price = item['close']
+                CURRENCY_PRICE_CACHE[item['code'].split(".")[0]] = {'close': current_price, 'time': now}
 
             result[item['code'].split(".")[0]] = current_price
         return result
