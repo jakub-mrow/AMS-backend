@@ -9,8 +9,9 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from ams import tasks
+
 from ams import models, serializers
+from ams import tasks
 from ams.permissions import IsObjectOwner
 from ams.serializers import ExchangeSerializer
 from ams.services import stock_balance_service, eod_service, account_history_service
@@ -109,7 +110,7 @@ class TransactionViewSet(viewsets.ViewSet):
             }
         )
 
-        if account.last_transaction_date > transaction.date or created:
+        if created or account.last_transaction_date > transaction.date:
             rebuild_account_balance(account, transaction.date)
         else:
             add_transaction_to_account_balance(transaction, account, account_balance)
