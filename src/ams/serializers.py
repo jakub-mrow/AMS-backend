@@ -73,10 +73,14 @@ class StockTransactionSerializer(serializers.ModelSerializer):
     account_id = serializers.IntegerField(source='account.id', read_only=True)
     pay_currency = serializers.CharField(max_length=3, required=False, allow_null=True)
     exchange_rate = serializers.DecimalField(max_digits=13, decimal_places=2, required=False, allow_null=True)
+    commission = serializers.DecimalField(max_digits=17, decimal_places=2, required=False, allow_null=True)
 
     class Meta:
         model = models.StockTransaction
-        fields = ('id', 'isin', 'quantity', 'price', 'transaction_type', 'date', 'account_id', 'pay_currency', 'exchange_rate')
+        fields = (
+            'id', 'isin', 'quantity', 'price', 'transaction_type', 'date', 'account_id', 'pay_currency',
+            'exchange_rate',
+            'commission')
 
     def create(self, validated_data):
         account_id = self.context.get('account_id')
@@ -130,6 +134,9 @@ class BuyCommandSerializer(serializers.Serializer):
     quantity = serializers.IntegerField()
     price = serializers.DecimalField(max_digits=13, decimal_places=2)
     date = serializers.DateTimeField()
+    pay_currency = serializers.CharField(max_length=3, required=False, allow_null=True)
+    exchange_rate = serializers.DecimalField(max_digits=13, decimal_places=2, required=False, allow_null=True)
+    commission = serializers.DecimalField(max_digits=17, decimal_places=2, required=False, allow_null=True)
 
     def create(self, validated_data):
         account_id = self.context.get('account_id')

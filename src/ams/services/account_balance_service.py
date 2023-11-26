@@ -20,15 +20,9 @@ def add_transaction_to_account_balance(transaction, account, account_balance):
 
 
 def add_transaction_from_stock(stock_transaction, stock, account):
-    pay_currency = stock_transaction.pay_currency
-    exchange_rate = stock_transaction.exchange_rate
-
-    if pay_currency and exchange_rate and pay_currency != exchange_rate:
-        amount = stock_transaction.quantity * stock_transaction.price * exchange_rate
-        currency = pay_currency
-    else:
-        amount = stock_transaction.quantity * stock_transaction.price
-        currency = stock.currency
+    currency = stock_transaction.pay_currency if stock_transaction.pay_currency else stock.currency
+    commission = stock_transaction.commission if stock_transaction.commission else 0
+    amount = stock_transaction.quantity * stock_transaction.price + commission
 
     account_transaction = models.Transaction.objects.create(
         account_id=stock_transaction.account_id,
@@ -42,7 +36,7 @@ def add_transaction_from_stock(stock_transaction, stock, account):
     account_transaction.save()
 
     account_balance = models.AccountBalance.objects.filter(account_id=stock_transaction.account_id,
-                                                           currency=stock.currency).first()
+                                                           currency=currency).first()
     if not account_balance:
         account_balance = models.AccountBalance.objects.create(
             account_id=stock_transaction.account_id,
