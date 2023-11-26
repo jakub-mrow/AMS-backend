@@ -368,6 +368,26 @@ class StockSearchAPIView(APIView):
             return Response({'error': 'Internal Server Error'}, status=500)
 
 
+class StockDetailsAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        stock = request.GET.get('stock')
+        exchange = request.GET.get('exchange')
+        period = request.GET.get('period', 'd')
+        from_date = request.GET.get('from', datetime.datetime.now().date().strftime("%Y-%m-%d"))
+        from_date = datetime.datetime.strptime(from_date, "%Y-%m-%d").date()
+        to_date = request.GET.get('to', datetime.datetime.now().date().strftime("%Y-%m-%d"))
+        to_date = datetime.datetime.strptime(to_date, "%Y-%m-%d").date()
+
+        try:
+            stock_details = eod_service.get_stock_details(stock, exchange, period, from_date, to_date)
+            return Response(data=stock_details, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(e)
+            return Response({'error': 'Internal Server Error'}, status=500)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_stock(request):

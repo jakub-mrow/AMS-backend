@@ -55,7 +55,6 @@ def rebuild_account_balance(account, rebuild_date):
                                                                       'date': rebuild_date - timedelta(days=1),
                                                                       'account_id': account.id
                                                                   })
-    # TODO Put fetching account histories and account balances to function
     account_balances = models.AccountBalance.objects.filter(account_id=account.id)
     account_balances_by_currency = {account_balance.currency: account_balance for account_balance in account_balances}
     currencies = account_balances_by_currency.keys()
