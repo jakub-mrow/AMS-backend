@@ -56,6 +56,26 @@ def add_transaction_from_stock(stock_transaction, stock, account):
     add_transaction_to_account_balance(account_transaction, account)
 
 
+def modify_transaction_from_stock(stock_transaction, stock, account):
+    account_transaction = models.Transaction.objects.get(correlation_id=stock_transaction.id)
+    old_account_transaction_date = account_transaction.date
+
+    currency = stock_transaction.pay_currency if stock_transaction.pay_currency else stock.currency
+    commission = stock_transaction.commission if stock_transaction.commission else 0
+    amount = stock_transaction.quantity * stock_transaction.price + commission
+
+    account_transaction.type = stock_transaction.transaction_type
+    account_transaction.amount = amount
+    account_transaction.currency = currency
+    account_transaction.date = stock_transaction.date
+    account_transaction.account = account
+    account_transaction.correlation_id = stock_transaction.id
+
+    account_transaction.save()
+    older_transaction_date = min(old_account_transaction_date.date(), account_transaction.date.date())
+    rebuild_account_balance(account_transaction.account, older_transaction_date)
+
+
 def rebuild_account_balance(account, rebuild_date):
     account_history = models.AccountHistory.objects.filter(account_id=account.id,
                                                            date=rebuild_date - timedelta(days=1)).first()

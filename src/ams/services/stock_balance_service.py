@@ -204,8 +204,7 @@ def modify_stock_transaction(stock_transaction, old_stock_transaction_date):
     rebuild_stock_balance(stock_balance, older_transaction_date)
 
     if models.Transaction.objects.filter(correlation_id=stock_transaction.id).exists():
-        # TODO: modify correlated account transaction and rebuild
-        pass
+        account_balance_service.modify_transaction_from_stock(stock_transaction, stock, stock_transaction.account)
 
 
 @transaction.atomic
@@ -215,5 +214,5 @@ def delete_stock_transaction(stock_transaction):
     rebuild_stock_balance(stock_balance, stock_transaction.date.date())
 
     if models.Transaction.objects.filter(correlation_id=stock_transaction.id).exists():
-        # TODO: delete correlated account transaction and rebuild
-        pass
+        account_transaction = models.Transaction.objects.get(correlation_id=stock_transaction.id)
+        account_balance_service.delete_transaction(account_transaction)
