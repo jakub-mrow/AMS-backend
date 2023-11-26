@@ -246,6 +246,37 @@ class StockTransactionViewSet(viewsets.ViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def destroy(self, request, account_id, pk=None):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_transaction = get_object_or_404(models.StockTransaction, pk=pk, account=account)
+        stock_balance_service.delete_stock_transaction(stock_transaction)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def update(self, request, account_id, pk=None):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        stock_transaction = get_object_or_404(models.StockTransaction, pk=pk, account=account)
+        old_stock_transaction_date = stock_transaction.date
+
+        serializer = serializers.StockTransactionSerializer(stock_transaction, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            with transaction.atomic():
+                stock_transaction = serializer.save()
+                stock_balance_service.modify_stock_transaction(stock_transaction, old_stock_transaction_date)
+        except Exception as e:
+            return Response({"error": "Stock transaction not modified."}, status=400)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['POST'])
     def buy(self, request, account_id):
         serializer = serializers.BuyCommandSerializer(data=request.data, context={'account_id': account_id})
