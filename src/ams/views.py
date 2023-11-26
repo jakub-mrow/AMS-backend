@@ -9,8 +9,9 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from ams import tasks
+
 from ams import models, serializers
+from ams import tasks
 from ams.permissions import IsObjectOwner
 from ams.serializers import ExchangeSerializer
 from ams.services import stock_balance_service, eod_service, account_history_service
@@ -109,7 +110,7 @@ class TransactionViewSet(viewsets.ViewSet):
             }
         )
 
-        if account.last_transaction_date > transaction.date or created:
+        if created or account.last_transaction_date > transaction.date:
             rebuild_account_balance(account, transaction.date)
         else:
             add_transaction_to_account_balance(transaction, account, account_balance)
@@ -352,6 +353,24 @@ class StockBalanceViewSet(viewsets.ViewSet):
                 'date')
         serializer = serializers.StockBalanceHistoryDtoSerializer(stock_balance_histories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['GET'])
+    def price(self, request, pk, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+            stock = models.Stock.objects.get(pk=pk)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+        except models.Stock.DoesNotExist:
+            return Response({"error": "Stock not found."}, status=404)
+
+        stock_balance = models.StockBalance.objects.filter(isin=pk, account=account).first()
+        try:
+            price, currency = stock_balance_service.get_stock_price_in_base_currency(stock_balance, stock)
+            return Response({"price": price, "currency": currency}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(e)
+            return Response({"error": "Problem with getting stock value"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class StockSearchAPIView(APIView):

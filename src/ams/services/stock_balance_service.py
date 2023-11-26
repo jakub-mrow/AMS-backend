@@ -1,4 +1,5 @@
 import datetime
+import decimal
 
 import pytz
 from django.db import transaction
@@ -217,3 +218,14 @@ def delete_stock_transaction(stock_transaction):
     if models.Transaction.objects.filter(correlation_id=stock_transaction.id).exists():
         # TODO: delete correlated account transaction and rebuild
         pass
+
+
+def get_stock_price_in_base_currency(stock_balance, stock):
+    stock_currency = stock.currency
+    base_currency = stock_balance.account.account_preferences.base_currency
+    if stock_currency == base_currency:
+        return stock_balance.price
+    currency_pair = f'{stock_currency}{base_currency}'
+    rates = eod_service.get_current_currency_price(currency_pair)
+    value_in_base = stock_balance.price * decimal.Decimal(rates[currency_pair])
+    return value_in_base.quantize(decimal.Decimal('0.01')), base_currency
