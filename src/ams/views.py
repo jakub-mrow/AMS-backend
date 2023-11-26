@@ -353,6 +353,24 @@ class StockBalanceViewSet(viewsets.ViewSet):
         serializer = serializers.StockBalanceHistoryDtoSerializer(stock_balance_histories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['GET'])
+    def price(self, request, pk, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+            stock = models.Stock.objects.get(pk=pk)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+        except models.Stock.DoesNotExist:
+            return Response({"error": "Stock not found."}, status=404)
+
+        stock_balance = models.StockBalance.objects.filter(isin=pk, account=account).first()
+        try:
+            value = stock_balance_service.get_stock_price_in_base_currency(stock_balance, stock)
+            return Response({"value": value}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(e)
+            return Response({"error": "Problem with getting stock value"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class StockSearchAPIView(APIView):
     permission_classes = (IsAuthenticated,)
