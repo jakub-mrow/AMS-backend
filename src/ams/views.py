@@ -9,13 +9,12 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from ams import tasks
+
 from ams import models, serializers
 from ams.permissions import IsObjectOwner
 from ams.serializers import ExchangeSerializer
 from ams.services import stock_balance_service, eod_service, account_history_service
-from ams.services.account_balance_service import (add_transaction_from_stock, add_transaction_to_account_balance,
-                                                  rebuild_account_balance)
+from ams.services.account_balance_service import (add_transaction_from_stock, add_transaction_to_account_balance)
 from ams.services.stock_balance_service import update_stock_price
 
 logger = logging.getLogger(__name__)
@@ -100,21 +99,10 @@ class TransactionViewSet(viewsets.ViewSet):
 
         serializer = serializers.TransactionCreateSerializer(data=request.data, context={'account_id': account.id})
         serializer.is_valid(raise_exception=True)
+
         transaction = serializer.save()
-        account_balance, created = models.AccountBalance.objects.get_or_create(
-            account_id=transaction.account_id,
-            currency=transaction.currency,
-            defaults={
-                'amount': 0,
-            }
-        )
+        add_transaction_to_account_balance(transaction, account)
 
-        if account.last_transaction_date > transaction.date or created:
-            rebuild_account_balance(account, transaction.date)
-        else:
-            add_transaction_to_account_balance(transaction, account, account_balance)
-
-        tasks.calculate_account_xirr_task.delay(account.id)
         return Response({"msg": "Transaction created."}, status=status.HTTP_201_CREATED)
 
     def list(self, request, account_id):
