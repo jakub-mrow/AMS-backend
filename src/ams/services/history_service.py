@@ -7,7 +7,6 @@ def save_account_history():
     date = datetime.now().date()
     history_date = date - timedelta(days=1)
 
-    # Get all accounts
     accounts = models.Account.objects.all()
 
     for account in accounts:
