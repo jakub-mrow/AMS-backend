@@ -529,9 +529,116 @@ paths:
                   opening_hour: 09:00:00
                   closing_hour: '17:30:00'
 
+  #Favourite Assets
+  /api/favourite_assets:
+    post:
+      tags:
+        - Favourite Assets
+      summary: Add asset to favourites
+      description: Add asset to favourites
+      operationId: addAssetToFavourites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: "VUSA"
+                exchange:
+                  type: string
+                  example: "LSE"
+                name:
+                  type: string
+                  example: "Vanguard S&P 500 UCITS ETF"
+                type:
+                  type: string
+                  example: "ETF"
+                country:
+                  type: string
+                  example: "UK"
+                currency:
+                  type: string
+                  example: "GBP"
+                isin:
+                  type: string
+                  example: "IE00B3XXRP09"
+
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    msg:
+                        type: string
+                        example: "Asset added to favourites"
+    get:
+      tags:
+        - Favourite Assets
+      summary: Get favourite assets
+      description: Get favourite assets
+      operationId: getFavouriteAssets
+
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 3
+                    code:
+                      type: string
+                      example: "VUSA"
+                    exchange:
+                      type: string
+                      example: "LSE"
+                    name:
+                      type: string
+                      example: "Vanguard S&P 500 UCITS ETF"
+                    type:
+                      type: string
+                      example: "ETF"
+                    country:
+                      type: string
+                      example: "UK"
+                    currency:
+                      type: string
+                      example: "GBP"
+                    isin:
+                      type: string
+                      example: "IE00B3XXRP09"
+    delete:
+      tags:
+        - Favourite Assets
+      summary: Delete asset from favourites
+      description: Delete asset from favourites
+      operationId: deleteFavouriteAsset
+      parameters:
+        - in: path
+          name: asset_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user's favourite asset
+      responses:
+        '204':
+          description: No content
+
 tags:
   - name: Authorization
   - name: Accounts
   - name: Transactions
   - name: Stocks
   - name: Exchanges
+  - name: Favourite Assets

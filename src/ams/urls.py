@@ -12,6 +12,7 @@ router.register("stocks", views.StockViewSet, "stock")
 router.register(r'stocks/(?P<exchange_id>\d+)', views.StockViewSet, "stocks_by_exchange"),
 router.register(r'stock/(?P<account_id>\d+)/transaction', views.StockTransactionViewSet, "transaction")
 router.register(r'stock_balances/(?P<account_id>\d+)', views.StockBalanceViewSet, "stock_balance")
+router.register(r'favourite_assets', views.FavoriteAssetViewSet, "favourite_assets")
 
 urlpatterns = [
     re_path("", include(router.urls)),
