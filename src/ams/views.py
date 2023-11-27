@@ -373,6 +373,29 @@ class StockBalanceViewSet(viewsets.ViewSet):
             return Response({"error": "Problem with getting stock value"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class FavoriteAssetViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated, IsObjectOwner)
+    serializer_class = serializers.FavoriteAssetSerializer
+    queryset = models.FavoriteAsset.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        request.data['user'] = request.user.id
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response({"msg": "Asset added to favourites"}, status=status.HTTP_201_CREATED)
+
+    def list(self, request, *args, **kwargs):
+        queryset = models.FavoriteAsset.objects.filter(user=request.user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class StockSearchAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 

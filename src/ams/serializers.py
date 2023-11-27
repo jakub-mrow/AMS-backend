@@ -147,3 +147,14 @@ class BuyCommandSerializer(serializers.Serializer):
 class AccountHistoryDtoSerializer(serializers.Serializer):
     amount = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
     date = serializers.DateField()
+
+
+class FavoriteAssetSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data.pop('user')
+        return data
+
+    class Meta:
+        model = models.FavoriteAsset
+        fields = '__all__'
