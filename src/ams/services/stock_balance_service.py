@@ -205,19 +205,19 @@ def modify_stock_transaction(stock_transaction, old_stock_transaction_date):
     rebuild_stock_balance(stock_balance, older_transaction_date)
 
     if models.Transaction.objects.filter(correlation_id=stock_transaction.id).exists():
-        # TODO: modify correlated account transaction and rebuild
-        pass
+        account_balance_service.modify_transaction_from_stock(stock_transaction, stock, stock_transaction.account)
 
 
 @transaction.atomic
 def delete_stock_transaction(stock_transaction):
     stock_balance = models.StockBalance.objects.get(isin=stock_transaction.isin, account=stock_transaction.account)
+    stock_transaction_id = stock_transaction.id
     stock_transaction.delete()
     rebuild_stock_balance(stock_balance, stock_transaction.date.date())
 
-    if models.Transaction.objects.filter(correlation_id=stock_transaction.id).exists():
-        # TODO: delete correlated account transaction and rebuild
-        pass
+    if models.Transaction.objects.filter(correlation_id=stock_transaction_id).exists():
+        account_transaction = models.Transaction.objects.get(correlation_id=stock_transaction_id)
+        account_balance_service.delete_transaction(account_transaction)
 
 
 def get_stock_price_in_base_currency(stock_balance, stock):

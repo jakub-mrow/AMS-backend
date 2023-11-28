@@ -1,4 +1,5 @@
 import decimal
+from collections import defaultdict
 
 from ams import models
 from ams.services import eod_service
@@ -13,11 +14,18 @@ class AccountHistoryDto:
 def get_account_history_dtos(account):
     histories = models.AccountHistory.objects.filter(account=account).order_by('date')
     base_currency = account.account_preferences.base_currency
-    history_balances = models.AccountHistoryBalance.objects.filter(account_history__in=histories)
+    history_balances = models.AccountHistoryBalance.objects.filter(account_history__in=histories).select_related(
+        'account_history')
     stock_history_balances = models.StockBalanceHistory.objects.filter(account=account)
     stocks = models.Stock.objects.filter(isin__in=stock_history_balances.values_list('isin', flat=True).distinct())
     isin_to_currency = {stock.isin: stock.currency for stock in stocks}
     date_to_history = {history.date: history for history in histories}
+    date_to_history_balances = defaultdict(list)
+    for balance in history_balances:
+        date_to_history_balances[balance.account_history.date].append(balance)
+    date_to_stock_history_balances = defaultdict(list)
+    for balance in stock_history_balances:
+        date_to_stock_history_balances[balance.date].append(balance)
 
     currencies = []
     for balance in history_balances:
@@ -37,16 +45,18 @@ def get_account_history_dtos(account):
     dtos = []
     for date in date_to_history.keys():
         amount = 0
-        for balance in history_balances.filter(account_history=date_to_history[date]):
+        for balance in date_to_history_balances[date]:
             if balance.currency == base_currency:
                 amount += balance.amount
             else:
                 amount += balance.amount * decimal.Decimal(currency_pairs[f'{balance.currency}{base_currency}'])
-        for stock_balance in stock_history_balances.filter(account=account, date=date):
-            if isin_to_currency[stock_balance.isin] == base_currency:
-                amount += stock_balance.result
-            else:
-                amount += stock_balance.result * decimal.Decimal(
-                    currency_pairs[f'{isin_to_currency[stock_balance.isin]}{base_currency}'])
+        if date in date_to_stock_history_balances:
+            for stock_balance in date_to_stock_history_balances[date]:
+                if isin_to_currency[stock_balance.isin] == base_currency:
+                    amount += stock_balance.quantity * stock_balance.price
+                else:
+                    rate = decimal.Decimal(
+                        currency_pairs[f'{isin_to_currency[stock_balance.isin]}{base_currency}'])
+                    amount += stock_balance.quantity * stock_balance.price * rate
         dtos.append(AccountHistoryDto(amount, date))
     return dtos
