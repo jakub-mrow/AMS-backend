@@ -1,9 +1,9 @@
 import concurrent
-import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
+
 from ams import models, serializers
 from main.settings import EOD_TOKEN, EOD_API_URL
 
@@ -40,11 +40,11 @@ def get_bulk_last_day_price(stocks, exchange, date):
     try:
         response = requests.get(url, timeout=10.0, params=params)
         data = response.json()
-        if len(data) == 0:
-            logger.warning(
-                'No data for stocks from ' + exchange.code + ' on date: ' + date.strftime(
-                    "%Y-%m-%d"))
-            return {}
+        while len(data) == 0:
+            date -= timedelta(days=1)
+            params['date'] = date.strftime('%Y-%m-%d')
+            response = requests.get(url, timeout=10.0, params=params)
+            data = response.json()
         return {d['code']: d['close'] for d in data}
     except Exception as e:
         logger.exception(e)
@@ -148,6 +148,11 @@ def get_price_changes(stock, begin, end):
     try:
         response = requests.get(url, timeout=10.0, params=params)
         data = response.json()
+        while len(data) == 0:
+            begin -= timedelta(days=1)
+            params['from'] = begin.strftime('%Y-%m-%d')
+            response = requests.get(url, timeout=10.0, params=params)
+            data = response.json()
         return data
     except Exception as e:
         logger.exception(e)
