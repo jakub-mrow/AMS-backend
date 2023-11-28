@@ -18,6 +18,7 @@ urlpatterns = [
     re_path("", include(router.urls)),
     re_path(r'search', views.StockSearchAPIView.as_view(), name='api-search'),
     re_path(r'get_stock_details', views.StockDetailsAPIView.as_view(), name='get_stock_details'),
+    re_path(r'get_stock_news', views.StockNewsAPIView.as_view(), name='get_stock_news'),
     re_path(r'update_stock', views.update_stock, name='update_stock'),
     re_path(r'accounts/(?P<account_id>\d+)/history', views.AccountHistoryView.as_view(), name="account_history"),
 ]
