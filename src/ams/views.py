@@ -350,6 +350,47 @@ class StockBalanceViewSet(viewsets.ViewSet):
         serializer = serializers.StockBalanceHistoryDtoSerializer(stock_balance_histories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['GET'])
+    def price(self, request, pk, account_id):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+            stock = models.Stock.objects.get(pk=pk)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+        except models.Stock.DoesNotExist:
+            return Response({"error": "Stock not found."}, status=404)
+
+        stock_balance = models.StockBalance.objects.filter(isin=pk, account=account).first()
+        try:
+            price, currency = stock_balance_service.get_stock_price_in_base_currency(stock_balance, stock)
+            return Response({"price": price, "currency": currency}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(e)
+            return Response({"error": "Problem with getting stock value"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FavoriteAssetViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated, IsObjectOwner)
+    serializer_class = serializers.FavoriteAssetSerializer
+    queryset = models.FavoriteAsset.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        request.data['user'] = request.user.id
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response({"msg": "Asset added to favourites"}, status=status.HTTP_201_CREATED)
+
+    def list(self, request, *args, **kwargs):
+        queryset = models.FavoriteAsset.objects.filter(user=request.user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class StockSearchAPIView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -360,6 +401,26 @@ class StockSearchAPIView(APIView):
         try:
             data = eod_service.search(query_string)
             return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(e)
+            return Response({'error': 'Internal Server Error'}, status=500)
+
+
+class StockDetailsAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        stock = request.GET.get('stock')
+        exchange = request.GET.get('exchange')
+        period = request.GET.get('period', 'd')
+        from_date = request.GET.get('from', datetime.datetime.now().date().strftime("%Y-%m-%d"))
+        from_date = datetime.datetime.strptime(from_date, "%Y-%m-%d").date()
+        to_date = request.GET.get('to', datetime.datetime.now().date().strftime("%Y-%m-%d"))
+        to_date = datetime.datetime.strptime(to_date, "%Y-%m-%d").date()
+
+        try:
+            stock_details = eod_service.get_stock_details(stock, exchange, period, from_date, to_date)
+            return Response(data=stock_details, status=status.HTTP_200_OK)
         except Exception as e:
             logger.exception(e)
             return Response({'error': 'Internal Server Error'}, status=500)

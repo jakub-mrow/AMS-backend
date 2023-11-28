@@ -504,6 +504,118 @@ paths:
                   previousClose: 66.45
                   previousCloseDate: '2023-10-18'
 
+  /api/get_stock_details:
+    get:
+      tags:
+        - Stocks
+      summary: Get stock details
+      description: Get stock details
+      operationId: getStockDetails
+      parameters:
+        - in: query
+          name: stock
+          schema:
+            type: string
+            example: NVDA
+          required: true
+          description: Stock ticker
+        - in: query
+          name: exchange
+          schema:
+            type: string
+            example: US
+          required: true
+          description: Exchange code
+        - in: query
+          name: period
+          schema:
+            type: string
+            default: d
+            enum:
+              - d
+              - w
+              - m
+            description: ’d’ for daily, ‘w’ for weekly, ‘m’ for monthly prices
+          required: false
+
+          description: Date from
+        - in: query
+          name: from
+          schema:
+              type: string
+              example: '2021-01-01'
+          required: false
+          description: From date
+        - in: query
+          name: to
+          schema:
+            type: string
+            example: '2021-01-01'
+          required: false
+          description: To date
+
+      responses:
+        '200':
+          description: OK
+          content:
+
+            application/json:
+              example:
+                price_changes:
+                  - date: '2023-10-20'
+                    open: 65.4
+                    high: 66.52
+                    low: 65.01
+                    close: 65.41
+                    adjusted_close: 65.41
+                    volume: 1920339
+                  - date: '2023-10-23'
+                    open: 65.2
+                    high: 66.76
+                    low: 64.53
+                    close: 65.88
+                    adjusted_close: 65.88
+                    volume: 8968832
+                  - date: '2023-10-30'
+                    open: 66.0
+                    high: 67.96
+                    low: 64.92
+                    close: 65.56
+                    adjusted_close: 65.56
+                    volume: 10857355
+                  - date: '2023-11-06'
+                    open: 66.5
+                    high: 66.83
+                    low: 62.04
+                    close: 62.16
+                    adjusted_close: 62.16
+                    volume: 9246802
+                  - date: '2023-11-13'
+                    open: 62.57
+                    high: 65.2
+                    low: 61.66
+                    close: 62.26
+                    adjusted_close: 62.26
+                    volume: 10381602
+                  - date: '2023-11-20'
+                    open: 62.3
+                    high: 64.48
+                    low: 62.3
+                    close: 64.2
+                    adjusted_close: 64.2
+                    volume: 7452768
+                exchange_info:
+                  id: 48
+                  name: Warsaw Stock Exchange (GPW)
+                  mic: XWAR
+                  country: Poland
+                  code: WAR
+                  timezone: Europe/Warsaw
+                  opening_hour: '09:00:00'
+                  closing_hour: '16:50:00'
+                current_price: 64.2
+                previous_close: 63.07
+                percentage_change_previous_close: 1.79
   #Exchanges
   /api/exchanges:
     get:
@@ -529,9 +641,116 @@ paths:
                   opening_hour: 09:00:00
                   closing_hour: '17:30:00'
 
+  #Favourite Assets
+  /api/favourite_assets:
+    post:
+      tags:
+        - Favourite Assets
+      summary: Add asset to favourites
+      description: Add asset to favourites
+      operationId: addAssetToFavourites
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: "VUSA"
+                exchange:
+                  type: string
+                  example: "LSE"
+                name:
+                  type: string
+                  example: "Vanguard S&P 500 UCITS ETF"
+                type:
+                  type: string
+                  example: "ETF"
+                country:
+                  type: string
+                  example: "UK"
+                currency:
+                  type: string
+                  example: "GBP"
+                isin:
+                  type: string
+                  example: "IE00B3XXRP09"
+
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                    msg:
+                        type: string
+                        example: "Asset added to favourites"
+    get:
+      tags:
+        - Favourite Assets
+      summary: Get favourite assets
+      description: Get favourite assets
+      operationId: getFavouriteAssets
+
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 3
+                    code:
+                      type: string
+                      example: "VUSA"
+                    exchange:
+                      type: string
+                      example: "LSE"
+                    name:
+                      type: string
+                      example: "Vanguard S&P 500 UCITS ETF"
+                    type:
+                      type: string
+                      example: "ETF"
+                    country:
+                      type: string
+                      example: "UK"
+                    currency:
+                      type: string
+                      example: "GBP"
+                    isin:
+                      type: string
+                      example: "IE00B3XXRP09"
+    delete:
+      tags:
+        - Favourite Assets
+      summary: Delete asset from favourites
+      description: Delete asset from favourites
+      operationId: deleteFavouriteAsset
+      parameters:
+        - in: path
+          name: asset_id
+          schema:
+            type: integer
+          required: true
+          description: Numeric ID of the user's favourite asset
+      responses:
+        '204':
+          description: No content
+
 tags:
   - name: Authorization
   - name: Accounts
   - name: Transactions
   - name: Stocks
   - name: Exchanges
+  - name: Favourite Assets

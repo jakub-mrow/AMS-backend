@@ -1,32 +1,29 @@
+import concurrent
+import json
 import logging
 from datetime import datetime
 
 import requests
-
+from ams import models, serializers
 from main.settings import EOD_TOKEN, EOD_API_URL
 
 logger = logging.getLogger(__name__)
 
 
-def get_current_price(stock, date):
+def get_current_price(stock, exchange):
     params = {
         'api_token': EOD_TOKEN,
-        'fmt': 'json',
-        'from': date.strftime('%Y-%m-%d'),
-        'to': date.strftime('%Y-%m-%d')
-
+        'fmt': 'json'
     }
-    url = f'{EOD_API_URL}/eod/{stock.ticker}.{stock.exchange.code}'
+    url = f'{EOD_API_URL}/real-time/{stock}.{exchange}'
 
     try:
         response = requests.get(url, timeout=10.0, params=params)
         data = response.json()
-        if len(data) == 0:
-            logger.warning(
-                'No data for stock: ' + stock.ticker + '.' + stock.exchange.code + ' on date: ' + date.strftime(
-                    "%Y-%m-%d"))
+        if data['previousClose'] == 'NA':
+            logger.warning('No data for stock: ' + stock + '.' + exchange)
             return None
-        return data[0]['close']
+        return data
     except Exception as e:
         logger.exception(e)
         return None
@@ -155,3 +152,43 @@ def get_price_changes(stock, begin, end):
     except Exception as e:
         logger.exception(e)
         return []
+
+
+def get_price_changes_2(stock, exchange, begin, end, period):
+    params = {
+        'api_token': EOD_TOKEN,
+        'fmt': 'json',
+        'from': begin.strftime('%Y-%m-%d'),
+        'to': end.strftime('%Y-%m-%d'),
+        'period': period
+    }
+    url = f'{EOD_API_URL}/eod/{stock}.{exchange}'
+
+    try:
+        response = requests.get(url, timeout=10.0, params=params)
+        data = response.json()
+        return data
+    except Exception as e:
+        logger.exception(e)
+        return []
+
+
+def get_stock_details(stock, exchange, period, from_date, to_date):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        price_changes_future = executor.submit(get_price_changes_2, stock, exchange, from_date, to_date, period)
+        current_price_future = executor.submit(get_current_price, stock, exchange)
+
+    price_changes = price_changes_future.result()
+    current_info = current_price_future.result()
+    exchange_info = models.Exchange.objects.filter(code=exchange).first()
+    exchange_serializer = serializers.ExchangeSerializer(exchange_info)
+    percentage_change = ((current_info['close'] - current_info['previousClose']) / current_info['previousClose']) * 100
+    stock_details = {
+        'price_changes': price_changes,
+        'exchange_info': exchange_serializer.data,
+        'current_price': current_info['close'],
+        'previous_close': current_info['previousClose'],
+        'percentage_change_previous_close': round(percentage_change, 2)
+    }
+
+    return stock_details

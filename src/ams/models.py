@@ -138,3 +138,17 @@ class AccountPreferences(models.Model):
     account = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='account_preferences', unique=True)
     base_currency = models.CharField(max_length=3)
     tax_currency = models.CharField(max_length=3)
+
+
+class FavoriteAsset(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    code = models.CharField(max_length=50)
+    exchange = models.CharField(max_length=50, null=True, blank=True)
+    name = models.CharField(max_length=100)
+    type = models.CharField(max_length=50)
+    country = models.CharField(max_length=50, null=True, blank=True)
+    currency = models.CharField(max_length=10)
+    isin = models.CharField(max_length=20, null=True, blank=True)
+
+    class Meta:
+        unique_together = ('code', 'exchange')
