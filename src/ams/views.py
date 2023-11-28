@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ams import models, serializers
+from ams import models, serializers, tasks
 from ams.permissions import IsObjectOwner
 from ams.serializers import ExchangeSerializer
 from ams.services import stock_balance_service, eod_service, account_history_service, account_balance_service
@@ -59,14 +59,20 @@ class AccountViewSet(viewsets.ModelViewSet):
         serializer = serializers.AccountPreferencesSerializer(data=request.data, context={'account_id': account.id})
         serializer.is_valid(raise_exception=True)
 
+        should_recalculate_xirr = False
         try:
             account_preferences = account.account_preferences
+            if account_preferences.base_currency != serializer.validated_data.get('base_currency'):
+                should_recalculate_xirr = True
             account_preferences.base_currency = serializer.validated_data.get('base_currency')
-            account_preferences.tax_value = serializer.validated_data.get('tax_value')
             account_preferences.tax_currency = serializer.validated_data.get('tax_currency')
             account_preferences.save()
         except models.AccountPreferences.DoesNotExist:
+            should_recalculate_xirr = True
             serializer.save()
+
+        if should_recalculate_xirr:
+            tasks.calculate_account_xirr_task.delay(account.id)
 
         return Response({"msg": "Account preferences updated"}, status=status.HTTP_200_OK)
 
