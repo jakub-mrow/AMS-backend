@@ -41,12 +41,13 @@ def update_account_balance(transaction, account, account_balance):
 
 
 def add_transaction_from_stock(stock_transaction, stock, account):
+    currency = stock_transaction.pay_currency if stock_transaction.pay_currency else stock.currency
+    exchange_rate = stock_transaction.exchange_rate if stock_transaction.exchange_rate else 1
     if stock_transaction.transaction_type == models.StockTransaction.DIVIDEND:
-        amount = stock_transaction.price
+        amount = stock_transaction.price * exchange_rate
     else:
         commission = stock_transaction.commission if stock_transaction.commission else 0
-        amount = stock_transaction.quantity * stock_transaction.price + commission
-    currency = stock_transaction.pay_currency if stock_transaction.pay_currency else stock.currency
+        amount = stock_transaction.quantity * stock_transaction.price * exchange_rate + commission
 
     account_transaction = models.Transaction.objects.create(
         account_id=stock_transaction.account_id,
