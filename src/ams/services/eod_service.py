@@ -198,7 +198,7 @@ def get_stock_news(stock):
     params = {
         'api_token': EOD_TOKEN,
         'fmt': 'json',
-        'limit': 20,
+        'limit': 50,
         's': stock
     }
     url = f'{EOD_API_URL}/news'
@@ -209,11 +209,14 @@ def get_stock_news(stock):
         news_list = []
         for item in data:
             utc_time = datetime.fromisoformat(item['date']).strftime("%Y-%m-%dT%H:%M:%SZ")
-            news_list.append({
-                'title': item['title'].replace('\n', ''),
-                'link': item['link'],
-                'date': utc_time
-            })
+            if "yahoo" in item['link'].split("/")[2]:
+                news_list.append({
+                    'title': item['title'].replace('\n', ''),
+                    'link': item['link'],
+                    'date': utc_time
+                })
+            if len(news_list) == 10:
+                break
 
         return news_list
     except Exception as e:
