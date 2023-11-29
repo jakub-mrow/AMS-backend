@@ -3,6 +3,7 @@ from rest_framework.fields import CurrentUserDefault
 
 import ams.services.models
 from ams import models
+from ams.services import account_balance_service
 
 
 class AccountBalanceSerializer(serializers.ModelSerializer):
@@ -30,6 +31,11 @@ class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Account
         fields = ('id', 'name', 'user_id', 'balances', 'last_transaction_date', 'last_save_date', 'xirr')
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['value'] = account_balance_service.get_account_value(instance)
+        return data
 
 
 class TransactionCreateSerializer(serializers.ModelSerializer):
