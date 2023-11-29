@@ -16,7 +16,7 @@ from ams.serializers import ExchangeSerializer
 from ams.services import stock_balance_service, eod_service
 from ams.services.account_balance_service import add_transaction_from_stock, rebuild_account_balance, \
     add_transaction_to_account_balance
-from ams.services.stock_balance_service import update_stock_price
+from ams.services.stock_balance_service import update_stock_price, update_average_price
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -233,6 +233,7 @@ class StockTransactionViewSet(viewsets.ViewSet):
                 stock_transaction = serializer.save()
                 stock_balance_service.add_stock_transaction_to_balance(stock_transaction, stock, account)
                 add_transaction_from_stock(stock_transaction, stock, account)
+                update_average_price(stock_transaction, stock)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 

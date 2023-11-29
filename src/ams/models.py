@@ -110,6 +110,7 @@ class StockBalance(models.Model):
     quantity = models.IntegerField()
     value = models.DecimalField(max_digits=13, decimal_places=2)
     result = models.DecimalField(max_digits=13, decimal_places=2)
+    average_price = models.DecimalField(max_digits=13, decimal_places=2)
     last_save_date = models.DateField(null=True)
     first_event_date = models.DateField(null=True)
     last_transaction_date = models.DateTimeField(null=True)

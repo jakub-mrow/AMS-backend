@@ -15,6 +15,7 @@ def add_stock_transaction_to_balance(stock_transaction, stock, account):
         defaults={
             'quantity': 0,
             'result': 0,
+            'average_price': 0,
             'value': 0,
         }
     )
@@ -48,6 +49,40 @@ def update_stock_balance(stock_transaction, stock_balance):
 
     if not stock_balance.last_transaction_date or stock_balance.last_transaction_date < stock_transaction.date:
         stock_balance.last_transaction_date = stock_transaction.date
+
+
+def update_average_price(stock_balance, stock_transaction):
+    stock_transactions = models.StockTransaction.objects.filter(
+        isin=stock_balance.isin,
+        account=stock_balance.account
+    ).order_by('date')
+    stock_transactions += stock_transaction
+
+    stock_history = []
+    for transaction in stock_transactions:
+        if transaction.transaction_type == 'buy':
+            stock_history.append((transaction.quantity, transaction.price))
+        elif transaction.transaction_type == 'sell':
+            for history in stock_history:
+                if history[0] >= transaction.quantity:
+                    history[0] -= transaction.quantity
+                    break
+                else:
+                    transaction.quantity -= history[0]
+                    history[0] = 0
+    stock_history = [history for history in stock_history if history[0] > 0]
+    if len(stock_history) == 0:
+        stock_balance.average_price = 0
+        return
+    average_price = 0
+    for history in stock_history:
+        average_price += history[0] * history[1]
+    average_price /= (stock_balance.quantity + stock_transaction.quantity)
+    stock_balance.average_price = average_price
+
+
+
+
 
 
 def update_stock_price(utc_now=datetime.datetime.utcnow()):
