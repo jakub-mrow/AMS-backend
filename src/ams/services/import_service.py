@@ -115,7 +115,55 @@ class DegiroImportStockTransactionsStrategy(ImportStockTransactionsStrategy):
         return models.Stock.objects.filter(isin=stock).prefetch_related('exchange').first()
 
 
+class Trading212ImportStockTransactionsStrategy(ImportStockTransactionsStrategy):
+    ACTION = 0
+    TIME = 1
+    ISIN = 2
+    NO_OF_SHARES = 5
+    PRICE_PER_SHARE = 6
+    CURRENCY = 7
+    EXCHANGE_RATE = 8
+
+    def __init__(self, file):
+        super().__init__(pd.read_csv(file))
+
+    def convert_rows(self, data):
+        result = data.copy()
+        isin_to_ticker = self.find_stocks(result.iloc[:, self.ISIN].unique())
+        result['ticker'] = result.iloc[:, self.ISIN].map(isin_to_ticker).apply(lambda x: x[0])
+        result['exchange'] = result.iloc[:, self.ISIN].map(isin_to_ticker).apply(lambda x: x[1])
+        result['date'] = pd.to_datetime(result.iloc[:, self.TIME], format="%Y-%m-%d %H:%M:%S")
+        result['type'] = "BUY"
+        result.loc[result.iloc[:, self.ACTION] == "Market sell", 'type'] = "SELL"
+        result['quantity'] = result.iloc[:, self.NO_OF_SHARES]
+        result['price'] = result.iloc[:, self.PRICE_PER_SHARE]
+        result['pay_currency'] = result.iloc[:, self.CURRENCY]
+        result['exchange_rate'] = 1 / result.iloc[:, self.EXCHANGE_RATE]
+        return result
+
+    def is_valid(self, data):
+        if len(data.columns) < 9:
+            return False
+        actions = data.iloc[:, self.ACTION].unique()
+        if not set(actions).issubset({"Market buy", "Market sell"}):
+            return False
+        if not data.iloc[:, self.TIME].str.match(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$").all():
+            return False
+        if not is_integer_dtype(data.iloc[:, self.NO_OF_SHARES]):
+            return False
+        if not is_numeric_dtype(data.iloc[:, self.PRICE_PER_SHARE]):
+            return False
+        if not is_numeric_dtype(data.iloc[:, self.EXCHANGE_RATE]):
+            return False
+        return True
+
+    def find_stock(self, stock):
+        return models.Stock.objects.filter(isin=stock).prefetch_related('exchange').first()
+
+
 def get_strategy(broker, file):
     if broker == "degiro":
         return DegiroImportStockTransactionsStrategy(file)
+    elif broker == "trading212":
+        return Trading212ImportStockTransactionsStrategy(file)
     return None
