@@ -426,6 +426,20 @@ class StockDetailsAPIView(APIView):
             return Response({'error': 'Internal Server Error'}, status=500)
 
 
+class StockNewsAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        stock = request.GET.get('stock')
+
+        try:
+            stock_news = eod_service.get_stock_news(stock)
+            return Response(data=stock_news, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(e)
+            return Response({'error': 'Internal Server Error'}, status=500)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_stock(request):
