@@ -158,3 +158,7 @@ class FavoriteAssetSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.FavoriteAsset
         fields = '__all__'
+
+
+class FileUploadSerializer(serializers.Serializer):
+    file = serializers.FileField()

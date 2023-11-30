@@ -1,5 +1,5 @@
 from django.conf.urls import include
-from django.urls import re_path
+from django.urls import re_path, get_resolver
 from rest_framework.routers import DefaultRouter
 
 from ams import views
@@ -20,4 +20,5 @@ urlpatterns = [
     re_path(r'get_stock_details', views.StockDetailsAPIView.as_view(), name='get_stock_details'),
     re_path(r'update_stock', views.update_stock, name='update_stock'),
     re_path(r'accounts/(?P<account_id>\d+)/history', views.AccountHistoryView.as_view(), name="account_history"),
+    re_path(r'import_stock_transactions', views.stock_transactions, name="import_stock_transactions"),
 ]
