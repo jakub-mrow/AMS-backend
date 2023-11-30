@@ -2,7 +2,7 @@ import datetime
 import logging
 
 from django.db import transaction
-from django.http import FileResponse, HttpResponse
+from django.http import HttpResponse
 from django.urls import get_resolver
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, parser_classes
@@ -19,6 +19,7 @@ from ams.serializers import ExchangeSerializer
 from ams.services import stock_balance_service, eod_service, account_history_service, account_balance_service, \
     import_service
 from ams.services.account_balance_service import (add_transaction_from_stock, add_transaction_to_account_balance)
+from ams.services.import_service import IncorrectFileFormatException, UnknownAssetException
 from ams.services.stock_balance_service import update_stock_price
 
 logger = logging.getLogger(__name__)
@@ -472,17 +473,17 @@ def stock_transactions(request):
     if not strategy:
         return Response({"error": "Broker not supported"}, status=status.HTTP_400_BAD_REQUEST)
 
-    valid = strategy.is_valid()
-    if not valid:
-        return Response({"error": "File has incorrect format"}, status=status.HTTP_400_BAD_REQUEST)
-
     try:
         result = strategy.convert()
+    except UnknownAssetException as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except IncorrectFileFormatException:
+        return Response({"error": "File has incorrect format"}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         logger.exception(e)
         return Response({"error": "Import failed"}, status=status.HTTP_400_BAD_REQUEST)
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename=TODO.csv'
-    result.to_csv(response, header=False)
+    result.to_csv(response, header=False, index=False)
     return response
