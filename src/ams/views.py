@@ -2,7 +2,7 @@ import datetime
 import logging
 
 from django.db import transaction
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 from django.urls import get_resolver
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, parser_classes
@@ -468,18 +468,21 @@ def stock_transactions(request):
     broker = request.query_params.get('broker')
     if not broker:
         return Response({"error": "Broker not specified"}, status=status.HTTP_400_BAD_REQUEST)
-    strategy = import_service.get_strategy(broker)
+    strategy = import_service.get_strategy(broker, file)
     if not strategy:
         return Response({"error": "Broker not supported"}, status=status.HTTP_400_BAD_REQUEST)
 
-    valid = strategy.is_valid(file)
+    valid = strategy.is_valid()
     if not valid:
         return Response({"error": "File has incorrect format"}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        result = strategy.convert(file)
+        result = strategy.convert()
     except Exception as e:
         logger.exception(e)
         return Response({"error": "Import failed"}, status=status.HTTP_400_BAD_REQUEST)
 
-    return FileResponse(result, filename='TODO.sv')
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=TODO.csv'
+    result.to_csv(response, header=False)
+    return response
