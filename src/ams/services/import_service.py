@@ -1,5 +1,7 @@
+import csv
 from abc import abstractmethod, ABC
 
+import numpy as np
 import pandas as pd
 from pandas.core.dtypes.common import is_integer_dtype, is_numeric_dtype
 
@@ -161,9 +163,64 @@ class Trading212ImportStockTransactionsStrategy(ImportStockTransactionsStrategy)
         return models.Stock.objects.filter(isin=stock).prefetch_related('exchange').first()
 
 
+class ExanteImportStockTransactionsStrategy(ImportStockTransactionsStrategy):
+    ISIN = 3
+    OPERATION = 4
+    DATE = 5
+    SUM = 6
+    ASSETS = 7
+
+    def __init__(self, file):
+        super().__init__(pd.read_csv(file, sep="\t", quoting=csv.QUOTE_ALL, quotechar='"'))
+
+    def convert_rows(self, data):
+        isins = data.iloc[:, self.ISIN].unique()
+        isins = [isin for isin in isins if str(isin) != "nan"]
+        isin_to_ticker = self.find_stocks(isins)
+        grouped = data.groupby(data.iloc[:, self.DATE])
+        results = []
+        for i, group in grouped:
+            results.append({
+                'ticker': isin_to_ticker[group.iloc[0, self.ISIN]][0],
+                'exchange': isin_to_ticker[group.iloc[0, self.ISIN]][1],
+                'date': pd.to_datetime(group.iloc[0, self.DATE], format="%Y-%m-%d %H:%M:%S"),
+                'type': "BUY" if group.iloc[0, self.SUM] > 0 else "SELL",
+                'quantity': int(abs(group.iloc[0, self.SUM])),
+                'price': round(abs(group.iloc[1, self.SUM] / group.iloc[0, self.SUM]), 2),
+                'pay_currency': group.iloc[2, self.ASSETS],
+                'exchange_rate': 1,
+                'commission': abs(group.iloc[2, self.SUM])
+            })
+        return pd.DataFrame(results)
+
+    def is_valid(self, data):
+        if len(data.columns) < 8:
+            return False
+        operations = data.iloc[:, self.OPERATION].unique()
+        if not set(operations).issubset({"TRADE", "COMMISSION"}):
+            return False
+        if not data.iloc[:, self.DATE].str.match(r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$").all():
+            return False
+        grouped = data.groupby(np.arange(len(data)) // 3)
+        for i, group in grouped:
+            if group.iloc[0, self.OPERATION] != "TRADE" or group.iloc[1, self.OPERATION] != "TRADE" or group.iloc[2,
+            self.OPERATION] != "COMMISSION":
+                return False
+            if not group.iloc[0, self.SUM].is_integer():
+                return False
+            if not is_numeric_dtype(group.iloc[1, self.SUM]) or not is_numeric_dtype(group.iloc[2, self.SUM]):
+                return False
+        return True
+
+    def find_stock(self, stock):
+        return models.Stock.objects.filter(isin=stock).prefetch_related('exchange').first()
+
+
 def get_strategy(broker, file):
     if broker == "degiro":
         return DegiroImportStockTransactionsStrategy(file)
     elif broker == "trading212":
         return Trading212ImportStockTransactionsStrategy(file)
+    elif broker == "exante":
+        return ExanteImportStockTransactionsStrategy(file)
     return None
