@@ -216,6 +216,53 @@ class ExanteImportStockTransactionsStrategy(ImportStockTransactionsStrategy):
         return models.Stock.objects.filter(isin=stock).prefetch_related('exchange').first()
 
 
+class DmBosImportStockTransactionsStrategy(ImportStockTransactionsStrategy):
+    DATE = 0
+    ASSET = 1
+    QUANTITY = 2
+    OPERATION = 3
+    PRICE = 4
+    COMMISSION = 6
+    CURRENCY = 8
+
+    def __init__(self, file):
+        super().__init__(pd.read_csv(file, encoding_errors="ignore", sep=";", decimal=","))
+
+    def convert_rows(self, data):
+        result = data.copy()
+        name_to_ticker = self.find_stocks(result.iloc[:, self.ASSET].unique())
+        result['ticker'] = result.iloc[:, self.ASSET].map(name_to_ticker).apply(lambda x: x[0])
+        result['exchange'] = result.iloc[:, self.ASSET].map(name_to_ticker).apply(lambda x: x[1])
+        result['date'] = pd.to_datetime(result.iloc[:, self.DATE], format="%Y-%m-%d") + pd.Timedelta(hours=12)
+        result['type'] = "BUY"
+        result.loc[result.iloc[:, self.OPERATION] == "S", 'type'] = "SELL"
+        result['quantity'] = result.iloc[:, self.QUANTITY]
+        result['price'] = result.iloc[:, self.PRICE]
+        result['pay_currency'] = result.iloc[:, self.CURRENCY]
+        result['exchange_rate'] = 1
+        result['commission'] = result.iloc[:, self.COMMISSION]
+        return result
+
+    def is_valid(self, data):
+        if len(data.columns) < 9:
+            return False
+        if not data.iloc[:, self.DATE].str.match(r"^\d{4}-\d{2}-\d{2}$").all():
+            return False
+        if not is_integer_dtype(data.iloc[:, self.QUANTITY]):
+            return False
+        operations = data.iloc[:, self.OPERATION].unique()
+        if not set(operations).issubset({"K", "S"}):
+            return False
+        if not is_numeric_dtype(data.iloc[:, self.PRICE]):
+            return False
+        if not is_numeric_dtype(data.iloc[:, self.COMMISSION]):
+            return False
+        return True
+
+    def find_stock(self, stock):
+        return models.Stock.objects.filter(isin=stock).prefetch_related('exchange').first()
+
+
 def get_strategy(broker, file):
     if broker == "degiro":
         return DegiroImportStockTransactionsStrategy(file)
@@ -223,4 +270,6 @@ def get_strategy(broker, file):
         return Trading212ImportStockTransactionsStrategy(file)
     elif broker == "exante":
         return ExanteImportStockTransactionsStrategy(file)
+    elif broker == "dmbos":
+        return DmBosImportStockTransactionsStrategy(file)
     return None
