@@ -33,12 +33,14 @@ class Transaction(models.Model):
     BUY = 'buy'
     SELL = 'sell'
     DIVIDEND = 'dividend'
+    COST = 'cost'
     TRANSACTION_TYPE_CHOICES = (
         (DEPOSIT, 'Deposit'),
         (WITHDRAWAL, 'Withdrawal'),
         (BUY, 'Buy'),
         (SELL, 'Sell'),
-        (DIVIDEND, 'dividend')
+        (DIVIDEND, 'dividend'),
+        (COST, 'cost')
     )
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='transactions')
