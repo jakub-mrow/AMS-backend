@@ -747,6 +747,44 @@ paths:
         '204':
           description: No content
 
+  # Stock News
+  /api/get_stock_news:
+    get:
+      tags:
+        - Stock News
+      summary: Get stock news
+      description: Get stock news
+      operationId: getStockNews
+      parameters:
+        - in: query
+          name: stock
+          schema:
+            type: string
+            example: AMD
+          required: true
+          description: Stock ticker
+      responses:
+        '200' :
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                      example: Dow Jones Rises After Strong GDP, Fed Beige Book Next; GM Surges On Buyback, Dividend Hike
+                    link:
+                      type: string
+                      format: uri
+                      example: https://finance.yahoo.com/m/9c6ec5f8-5e08-32c7-985d-c1ac25fee4b5/dow-jones-rises-after-strong.html
+                    date:
+                      type: string
+                      format: date-time
+                      example: '2023-11-29T14:44:03Z'
+
 tags:
   - name: Authorization
   - name: Accounts
@@ -754,3 +792,4 @@ tags:
   - name: Stocks
   - name: Exchanges
   - name: Favourite Assets
+  - name: Stock News
