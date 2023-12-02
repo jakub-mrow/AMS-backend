@@ -3,7 +3,6 @@ import logging
 
 from django.db import transaction
 from django.http import HttpResponse
-from django.urls import get_resolver
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, parser_classes
 from rest_framework.decorators import api_view, permission_classes
@@ -51,7 +50,6 @@ class AccountViewSet(viewsets.ModelViewSet):
         return Response({"msg": "Account updated"}, status=status.HTTP_200_OK)
 
     def get_queryset(self):
-        print(get_resolver().url_patterns)
         return models.Account.objects.filter(user=self.request.user).order_by('id')
 
     def get_serializer_class(self):
