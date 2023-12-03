@@ -3,6 +3,7 @@ from rest_framework.fields import CurrentUserDefault
 
 import ams.services.models
 from ams import models
+from ams.services import account_balance_service
 
 
 class AccountBalanceSerializer(serializers.ModelSerializer):
@@ -22,14 +23,33 @@ class AccountCreateSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'user', 'last_transaction_date')
 
 
+class AccountPreferencesSerializer(serializers.ModelSerializer):
+    account_id = serializers.IntegerField(source='account.id', read_only=True)
+
+    class Meta:
+        model = models.AccountPreferences
+        fields = ('account_id', 'base_currency', 'tax_currency')
+
+    def create(self, validated_data):
+        account_id = self.context.get('account_id')
+        validated_data['account_id'] = account_id
+        return super().create(validated_data)
+
+
 class AccountSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source='user.id')
     balances = AccountBalanceSerializer(many=True)
     xirr = serializers.DecimalField(max_digits=17, decimal_places=10, coerce_to_string=False)
+    preferences = AccountPreferencesSerializer(source='account_preferences', read_only=True)
 
     class Meta:
         model = models.Account
-        fields = ('id', 'name', 'user_id', 'balances', 'last_transaction_date', 'last_save_date', 'xirr')
+        fields = ('id', 'name', 'user_id', 'balances', 'last_transaction_date', 'last_save_date', 'xirr', 'preferences')
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['value'] = account_balance_service.get_account_value(instance)
+        return data
 
 
 class TransactionCreateSerializer(serializers.ModelSerializer):
@@ -113,19 +133,6 @@ class StockBalanceHistoryDtoSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.StockBalanceHistory
         fields = ('isin', 'date', 'quantity', 'price', 'result')
-
-
-class AccountPreferencesSerializer(serializers.ModelSerializer):
-    account_id = serializers.IntegerField(source='account.id', read_only=True)
-
-    class Meta:
-        model = models.AccountPreferences
-        fields = ('account_id', 'base_currency', 'tax_currency')
-
-    def create(self, validated_data):
-        account_id = self.context.get('account_id')
-        validated_data['account_id'] = account_id
-        return super().create(validated_data)
 
 
 class BuyCommandSerializer(serializers.Serializer):

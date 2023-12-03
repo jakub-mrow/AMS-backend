@@ -1,8 +1,10 @@
+import decimal
 from datetime import timedelta, datetime
 
 from django.db import transaction
 
 from ams import models, tasks
+from ams.services import eod_service
 
 
 def add_transaction_to_account_balance(transaction, account):
@@ -40,8 +42,12 @@ def update_account_balance(transaction, account, account_balance):
 
 def add_transaction_from_stock(stock_transaction, stock, account):
     currency = stock_transaction.pay_currency if stock_transaction.pay_currency else stock.currency
-    commission = stock_transaction.commission if stock_transaction.commission else 0
-    amount = stock_transaction.quantity * stock_transaction.price + commission
+    exchange_rate = stock_transaction.exchange_rate if stock_transaction.exchange_rate else 1
+    if stock_transaction.transaction_type == models.StockTransaction.DIVIDEND:
+        amount = stock_transaction.price * exchange_rate
+    else:
+        commission = stock_transaction.commission if stock_transaction.commission else 0
+        amount = stock_transaction.quantity * stock_transaction.price * exchange_rate + commission
 
     account_transaction = models.Transaction.objects.create(
         account_id=stock_transaction.account_id,
@@ -144,3 +150,41 @@ def modify_transaction(account_transaction, old_transaction_date):
 def delete_transaction(account_transaction):
     account_transaction.delete()
     rebuild_account_balance(account_transaction.account, account_transaction.date.date())
+
+
+def get_account_value(account):
+    base_currency = account.account_preferences.base_currency
+    account_balances = models.AccountBalance.objects.filter(account=account)
+    stock_balances = models.StockBalance.objects.filter(account=account)
+    stocks = models.Stock.objects.filter(isin__in=stock_balances.values_list('isin', flat=True).distinct())
+    isin_to_currency = {stock.isin: stock.currency for stock in stocks}
+
+    currencies = []
+    for balance in account_balances:
+        if balance.currency != base_currency:
+            currencies.append(f'{balance.currency}{base_currency}')
+    for currency in isin_to_currency.values():
+        if currency != base_currency:
+            currencies.append(f'{currency}{base_currency}')
+    currencies = list(set(currencies))
+    currency_pairs = {}
+    if len(currencies) > 0:
+        if len(currencies) == 1:
+            currency_pairs = eod_service.get_current_currency_price(currencies[0])
+        else:
+            currency_pairs = eod_service.get_current_currency_prices(currencies)
+
+    amount = 0
+    for balance in account_balances:
+        if balance.currency == base_currency:
+            amount += balance.amount
+        else:
+            amount += balance.amount * decimal.Decimal(currency_pairs[f'{balance.currency}{base_currency}'])
+    for stock_balance in stock_balances:
+        if isin_to_currency[stock_balance.isin] == base_currency:
+            amount += stock_balance.quantity * stock_balance.price
+        else:
+            rate = decimal.Decimal(
+                currency_pairs[f'{isin_to_currency[stock_balance.isin]}{base_currency}'])
+            amount += stock_balance.quantity * stock_balance.price * rate
+    return amount
