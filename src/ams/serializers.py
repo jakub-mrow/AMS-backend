@@ -123,6 +123,7 @@ class StockBalanceDtoSerializer(serializers.ModelSerializer):
         data['ticker'] = stock.ticker
         data['currency'] = stock.currency
         data['exchange_code'] = stock.exchange.code
+        data['type'] = stock.type
         return data
 
 
@@ -136,7 +137,7 @@ class StockBalanceHistoryDtoSerializer(serializers.ModelSerializer):
 
 
 class BuyCommandSerializer(serializers.Serializer):
-    ticker = serializers.CharField(max_length=5)
+    ticker = serializers.CharField(max_length=10)
     exchange_code = serializers.CharField(max_length=5)
     quantity = serializers.IntegerField()
     price = serializers.DecimalField(max_digits=13, decimal_places=2)

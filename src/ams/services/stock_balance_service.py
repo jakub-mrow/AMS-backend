@@ -181,7 +181,8 @@ def buy_stocks(buy_command):
             ticker=buy_command.ticker,
             name=stock_from_api['Name'],
             currency=stock_from_api['Currency'],
-            exchange=exchange
+            exchange=exchange,
+            type="STOCK" if buy_command.exchange_code != "CC" else "CRYPTO"
         )
     stock_transaction = models.StockTransaction(
         account=account,

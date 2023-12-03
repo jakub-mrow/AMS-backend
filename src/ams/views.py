@@ -190,7 +190,7 @@ class StockViewSet(viewsets.ViewSet):
 
         serializer = serializers.StockSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(exchange=exchange)
+        serializer.save(exchange=exchange, type="STOCK" if exchange.code != "CC" else "CRYPTO")
         logging.info("Stock added")
         return Response({"msg": "Stock added"}, status=status.HTTP_201_CREATED)
 

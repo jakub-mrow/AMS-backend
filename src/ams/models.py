@@ -107,8 +107,8 @@ class Stock(models.Model):
         ('STOCK', 'Stock'),
         ('CRYPTO', 'Cryptocurrency'),
     ]
-    isin = models.CharField(max_length=12)
-    ticker = models.CharField(max_length=5)
+    isin = models.CharField(max_length=12, null=True, blank=True)
+    ticker = models.CharField(max_length=10)
     name = models.CharField(max_length=128)
     currency = models.CharField(max_length=3)
     exchange = models.ForeignKey(Exchange, on_delete=models.CASCADE)
@@ -129,7 +129,7 @@ class StockBalance(models.Model):
     last_transaction_date = models.DateTimeField(null=True)
 
     def __str__(self):
-        return f"{self.quantity} of {self.isin} for {self.account_id}"
+        return f"{self.quantity} of {self.asset_id} for {self.account_id}"
 
 
 class StockBalanceHistory(models.Model):
