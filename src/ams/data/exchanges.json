@@ -430,5 +430,14 @@
     "timezone": "Europe/Berlin",
     "country": "Germany",
     "code": "XETRA"
+  },
+  {
+    "name": "Cryptocurrency Exchange",
+    "mic": "CC",
+    "open": "00:00:00",
+    "close": "23:59:59",
+    "timezone": "Etc/UTC",
+    "country": "Worldwide",
+    "code": "CC"
   }
 ]

@@ -65,7 +65,7 @@ class ExchangeSerializer(serializers.ModelSerializer):
 class StockSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Stock
-        fields = ('isin', 'ticker', 'name', 'exchange', 'currency')
+        fields = ('id', 'isin', 'ticker', 'name', 'exchange', 'currency')
 
 
 class StockTransactionSerializer(serializers.ModelSerializer):
@@ -78,7 +78,7 @@ class StockTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.StockTransaction
         fields = (
-            'id', 'isin', 'quantity', 'price', 'transaction_type', 'date', 'account_id', 'pay_currency',
+            'id', 'asset_id', 'quantity', 'price', 'transaction_type', 'date', 'account_id', 'pay_currency',
             'exchange_rate',
             'commission')
 
@@ -94,11 +94,11 @@ class StockBalanceDtoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.StockBalance
-        fields = ('isin', 'quantity', 'price', 'result')
+        fields = ('asset_id', 'quantity', 'price', 'result')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        stock = models.Stock.objects.get(isin=instance.isin)
+        stock = models.Stock.objects.get(id=instance.asset_id)
         data['name'] = stock.name
         data['ticker'] = stock.ticker
         data['currency'] = stock.currency
@@ -112,7 +112,7 @@ class StockBalanceHistoryDtoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.StockBalanceHistory
-        fields = ('isin', 'date', 'quantity', 'price', 'result')
+        fields = ('asset_id', 'date', 'quantity', 'price', 'result')
 
 
 class AccountPreferencesSerializer(serializers.ModelSerializer):
