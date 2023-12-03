@@ -2,10 +2,12 @@ import datetime
 import logging
 
 from django.db import transaction
+from django.http import HttpResponse
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, parser_classes
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,8 +15,10 @@ from rest_framework.views import APIView
 from ams import models, serializers, tasks
 from ams.permissions import IsObjectOwner
 from ams.serializers import ExchangeSerializer
-from ams.services import stock_balance_service, eod_service, account_history_service, account_balance_service
+from ams.services import stock_balance_service, eod_service, account_history_service, account_balance_service, \
+    import_service
 from ams.services.account_balance_service import (add_transaction_from_stock, add_transaction_to_account_balance)
+from ams.services.import_service import IncorrectFileFormatException, UnknownAssetException
 from ams.services.stock_balance_service import update_stock_price
 
 logger = logging.getLogger(__name__)
@@ -432,6 +436,20 @@ class StockDetailsAPIView(APIView):
             return Response({'error': 'Internal Server Error'}, status=500)
 
 
+class StockNewsAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        stock = request.GET.get('stock')
+
+        try:
+            stock_news = eod_service.get_stock_news(stock)
+            return Response(data=stock_news, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(e)
+            return Response({'error': 'Internal Server Error'}, status=500)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_stock(request):
@@ -455,3 +473,35 @@ class AccountHistoryView(APIView):
 
         serializer = serializers.AccountHistoryDtoSerializer(dtos, many=True)
         return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def stock_transactions(request):
+    serializer = serializers.FileUploadSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    file = serializer.validated_data['file']
+    if file.content_type not in ["text/csv"]:
+        return Response({"error": "File type not supported"}, status=status.HTTP_400_BAD_REQUEST)
+    broker = request.query_params.get('broker')
+    if not broker:
+        return Response({"error": "Broker not specified"}, status=status.HTTP_400_BAD_REQUEST)
+    strategy = import_service.get_strategy(broker, file)
+    if not strategy:
+        return Response({"error": "Broker not supported"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        result = strategy.convert()
+    except UnknownAssetException as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except IncorrectFileFormatException:
+        return Response({"error": "File has incorrect format"}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.exception(e)
+        return Response({"error": "Import failed"}, status=status.HTTP_400_BAD_REQUEST)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=TODO.csv'
+    result.to_csv(response, header=False, index=False)
+    return response

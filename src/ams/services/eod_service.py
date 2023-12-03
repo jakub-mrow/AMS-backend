@@ -197,3 +197,33 @@ def get_stock_details(stock, exchange, period, from_date, to_date):
     }
 
     return stock_details
+
+
+def get_stock_news(stock):
+    params = {
+        'api_token': EOD_TOKEN,
+        'fmt': 'json',
+        'limit': 50,
+        's': stock
+    }
+    url = f'{EOD_API_URL}/news'
+
+    try:
+        response = requests.get(url, timeout=10.0, params=params)
+        data = response.json()
+        news_list = []
+        for item in data:
+            utc_time = datetime.fromisoformat(item['date']).strftime("%Y-%m-%dT%H:%M:%SZ")
+            if "yahoo" in item['link'].split("/")[2]:
+                news_list.append({
+                    'title': item['title'].replace('\n', ''),
+                    'link': item['link'],
+                    'date': utc_time
+                })
+            if len(news_list) == 10:
+                break
+
+        return news_list
+    except Exception as e:
+        logger.exception(e)
+        return []

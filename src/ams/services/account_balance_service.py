@@ -30,7 +30,7 @@ def add_transaction_to_account_balance(transaction, account):
 def update_account_balance(transaction, account, account_balance):
     if transaction.type == 'deposit' or transaction.type == 'sell' or transaction.type == 'dividend':
         account_balance.amount += transaction.amount
-    elif transaction.type == 'withdrawal' or transaction.type == 'buy':
+    elif transaction.type == 'withdrawal' or transaction.type == 'buy' or transaction.type == 'cost':
         account_balance.amount -= transaction.amount
 
     if account.last_transaction_date:
