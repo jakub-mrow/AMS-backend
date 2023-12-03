@@ -65,7 +65,7 @@ class ExchangeSerializer(serializers.ModelSerializer):
 class StockSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Stock
-        fields = ('id', 'isin', 'ticker', 'name', 'exchange', 'currency')
+        fields = ('id', 'isin', 'type', 'ticker', 'name', 'exchange', 'currency')
 
 
 class StockTransactionSerializer(serializers.ModelSerializer):
