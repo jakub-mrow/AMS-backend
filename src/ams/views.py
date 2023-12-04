@@ -2,21 +2,23 @@ import datetime
 import logging
 
 from django.db import transaction
+from django.http import HttpResponse
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, parser_classes
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ams import models, serializers
-from ams import tasks
+from ams import models, serializers, tasks
 from ams.permissions import IsObjectOwner
 from ams.serializers import ExchangeSerializer
-from ams.services import stock_balance_service, eod_service, account_history_service
-from ams.services.account_balance_service import (add_transaction_from_stock, add_transaction_to_account_balance,
-                                                  rebuild_account_balance)
+from ams.services import stock_balance_service, eod_service, account_history_service, account_balance_service, \
+    import_service
+from ams.services.account_balance_service import (add_transaction_from_stock, add_transaction_to_account_balance)
+from ams.services.import_service import IncorrectFileFormatException, UnknownAssetException
 from ams.services.stock_balance_service import update_stock_price
 
 logger = logging.getLogger(__name__)
@@ -61,14 +63,20 @@ class AccountViewSet(viewsets.ModelViewSet):
         serializer = serializers.AccountPreferencesSerializer(data=request.data, context={'account_id': account.id})
         serializer.is_valid(raise_exception=True)
 
+        should_recalculate_xirr = False
         try:
             account_preferences = account.account_preferences
+            if account_preferences.base_currency != serializer.validated_data.get('base_currency'):
+                should_recalculate_xirr = True
             account_preferences.base_currency = serializer.validated_data.get('base_currency')
-            account_preferences.tax_value = serializer.validated_data.get('tax_value')
             account_preferences.tax_currency = serializer.validated_data.get('tax_currency')
             account_preferences.save()
         except models.AccountPreferences.DoesNotExist:
+            should_recalculate_xirr = True
             serializer.save()
+
+        if should_recalculate_xirr:
+            tasks.calculate_account_xirr_task.delay(account.id)
 
         return Response({"msg": "Account preferences updated"}, status=status.HTTP_200_OK)
 
@@ -101,21 +109,10 @@ class TransactionViewSet(viewsets.ViewSet):
 
         serializer = serializers.TransactionCreateSerializer(data=request.data, context={'account_id': account.id})
         serializer.is_valid(raise_exception=True)
+
         transaction = serializer.save()
-        account_balance, created = models.AccountBalance.objects.get_or_create(
-            account_id=transaction.account_id,
-            currency=transaction.currency,
-            defaults={
-                'amount': 0,
-            }
-        )
+        add_transaction_to_account_balance(transaction, account)
 
-        if created or account.last_transaction_date > transaction.date:
-            rebuild_account_balance(account, transaction.date)
-        else:
-            add_transaction_to_account_balance(transaction, account, account_balance)
-
-        tasks.calculate_account_xirr_task.delay(account.id)
         return Response({"msg": "Transaction created."}, status=status.HTTP_201_CREATED)
 
     def list(self, request, account_id):
@@ -133,25 +130,34 @@ class TransactionViewSet(viewsets.ViewSet):
 
         return Response(serializer.data)
 
+    def update(self, request, account_id, pk=None):
+        try:
+            account = models.Account.objects.get(pk=account_id, user=request.user)
+        except models.Account.DoesNotExist:
+            return Response({"error": "Account not found."}, status=404)
+
+        account_transaction = get_object_or_404(models.Transaction, pk=pk, account=account)
+        old_account_transaction_date = account_transaction.date
+
+        serializer = serializers.TransactionSerializer(account_transaction, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            with transaction.atomic():
+                account_transaction = serializer.save()
+                account_balance_service.modify_transaction(account_transaction, old_account_transaction_date)
+        except Exception as e:
+            return Response({"error": "Account transaction not modified."}, status=400)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def destroy(self, request, account_id, pk=None):
         try:
             account = models.Account.objects.get(pk=account_id, user=request.user)
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        transaction = get_object_or_404(models.Transaction, pk=pk, account=account)
-        account_balance = models.AccountBalance.objects.get(
-            account_id=transaction.account_id,
-            currency=transaction.currency
-        )
-
-        if transaction.type == "deposit":
-            account_balance.amount -= transaction.amount
-        elif transaction.type == "withdrawal":
-            account_balance.amount += transaction.amount
-
-        account_balance.save()
-        transaction.delete()
+        account_transaction = get_object_or_404(models.Transaction, pk=pk, account=account)
+        account_balance_service.delete_transaction(account_transaction)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -184,7 +190,7 @@ class StockViewSet(viewsets.ViewSet):
 
         serializer = serializers.StockSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(exchange=exchange)
+        serializer.save(exchange=exchange, type="STOCK" if exchange.code != "CC" else "CRYPTO")
         logging.info("Stock added")
         return Response({"msg": "Stock added"}, status=status.HTTP_201_CREATED)
 
@@ -212,7 +218,7 @@ class StockTransactionViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         try:
-            stock = models.Stock.objects.get(pk=serializer.validated_data['isin'])
+            stock = models.Stock.objects.get(pk=serializer.validated_data['id'])
         except models.Stock.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
@@ -234,9 +240,9 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        isin = self.request.query_params.get('isin')
-        if isin:
-            stock_transactions = models.StockTransaction.objects.filter(account=account, isin=isin).order_by('-date')
+        asset_id = self.request.query_params.get('id')
+        if asset_id:
+            stock_transactions = models.StockTransaction.objects.filter(account=account, asset_id=asset_id).order_by('-date')
         else:
             stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
         stock_transactions = stock_transactions.filter(
@@ -313,7 +319,7 @@ class StockBalanceViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        stock_balance = models.StockBalance.objects.filter(isin=pk, account=account).first()
+        stock_balance = models.StockBalance.objects.filter(asset_id=pk, account=account).first()
         serializer = serializers.StockBalanceDtoSerializer(stock_balance, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -339,17 +345,17 @@ class StockBalanceViewSet(viewsets.ViewSet):
         to_date = request.query_params.get('to')
 
         if from_date and to_date:
-            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account,
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(asset_id=pk, account=account,
                                                                                 date__gte=from_date,
                                                                                 date__lte=to_date).order_by('date')
         elif from_date:
-            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account,
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(asset_id=pk, account=account,
                                                                                 date__gte=from_date).order_by('date')
         elif to_date:
-            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account,
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(asset_id=pk, account=account,
                                                                                 date__lte=to_date).order_by('date')
         else:
-            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account).order_by(
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(asset_id=pk, account=account).order_by(
                 'date')
         serializer = serializers.StockBalanceHistoryDtoSerializer(stock_balance_histories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -364,7 +370,7 @@ class StockBalanceViewSet(viewsets.ViewSet):
         except models.Stock.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
-        stock_balance = models.StockBalance.objects.filter(isin=pk, account=account).first()
+        stock_balance = models.StockBalance.objects.filter(asset_id=pk, account=account).first()
         try:
             price, currency = stock_balance_service.get_stock_price_in_base_currency(stock_balance, stock)
             return Response({"price": price, "currency": currency}, status=status.HTTP_200_OK)
@@ -430,6 +436,20 @@ class StockDetailsAPIView(APIView):
             return Response({'error': 'Internal Server Error'}, status=500)
 
 
+class StockNewsAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        stock = request.GET.get('stock')
+
+        try:
+            stock_news = eod_service.get_stock_news(stock)
+            return Response(data=stock_news, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(e)
+            return Response({'error': 'Internal Server Error'}, status=500)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_stock(request):
@@ -453,3 +473,35 @@ class AccountHistoryView(APIView):
 
         serializer = serializers.AccountHistoryDtoSerializer(dtos, many=True)
         return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def stock_transactions(request):
+    serializer = serializers.FileUploadSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    file = serializer.validated_data['file']
+    if file.content_type not in ["text/csv"]:
+        return Response({"error": "File type not supported"}, status=status.HTTP_400_BAD_REQUEST)
+    broker = request.query_params.get('broker')
+    if not broker:
+        return Response({"error": "Broker not specified"}, status=status.HTTP_400_BAD_REQUEST)
+    strategy = import_service.get_strategy(broker, file)
+    if not strategy:
+        return Response({"error": "Broker not supported"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        result = strategy.convert()
+    except UnknownAssetException as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except IncorrectFileFormatException:
+        return Response({"error": "File has incorrect format"}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.exception(e)
+        return Response({"error": "Import failed"}, status=status.HTTP_400_BAD_REQUEST)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=TODO.csv'
+    result.to_csv(response, header=False, index=False)
+    return response

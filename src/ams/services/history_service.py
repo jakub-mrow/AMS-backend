@@ -33,7 +33,7 @@ def save_stock_balance_history():
 
     for stock_balance in stock_balances:
         models.StockBalanceHistory.objects.create(
-            isin=stock_balance.isin,
+            asset_id=stock_balance.asset_id,
             account=stock_balance.account,
             date=history_date,
             quantity=stock_balance.quantity,

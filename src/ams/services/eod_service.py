@@ -1,9 +1,9 @@
 import concurrent
-import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
+
 from ams import models, serializers
 from main.settings import EOD_TOKEN, EOD_API_URL
 
@@ -40,11 +40,11 @@ def get_bulk_last_day_price(stocks, exchange, date):
     try:
         response = requests.get(url, timeout=10.0, params=params)
         data = response.json()
-        if len(data) == 0:
-            logger.warning(
-                'No data for stocks from ' + exchange.code + ' on date: ' + date.strftime(
-                    "%Y-%m-%d"))
-            return {}
+        while len(data) == 0:
+            date -= timedelta(days=1)
+            params['date'] = date.strftime('%Y-%m-%d')
+            response = requests.get(url, timeout=10.0, params=params)
+            data = response.json()
         return {d['code']: d['close'] for d in data}
     except Exception as e:
         logger.exception(e)
@@ -148,6 +148,11 @@ def get_price_changes(stock, begin, end):
     try:
         response = requests.get(url, timeout=10.0, params=params)
         data = response.json()
+        while len(data) == 0:
+            begin -= timedelta(days=1)
+            params['from'] = begin.strftime('%Y-%m-%d')
+            response = requests.get(url, timeout=10.0, params=params)
+            data = response.json()
         return data
     except Exception as e:
         logger.exception(e)
@@ -192,3 +197,33 @@ def get_stock_details(stock, exchange, period, from_date, to_date):
     }
 
     return stock_details
+
+
+def get_stock_news(stock):
+    params = {
+        'api_token': EOD_TOKEN,
+        'fmt': 'json',
+        'limit': 50,
+        's': stock
+    }
+    url = f'{EOD_API_URL}/news'
+
+    try:
+        response = requests.get(url, timeout=10.0, params=params)
+        data = response.json()
+        news_list = []
+        for item in data:
+            utc_time = datetime.fromisoformat(item['date']).strftime("%Y-%m-%dT%H:%M:%SZ")
+            if "yahoo" in item['link'].split("/")[2]:
+                news_list.append({
+                    'title': item['title'].replace('\n', ''),
+                    'link': item['link'],
+                    'date': utc_time
+                })
+            if len(news_list) == 10:
+                break
+
+        return news_list
+    except Exception as e:
+        logger.exception(e)
+        return []

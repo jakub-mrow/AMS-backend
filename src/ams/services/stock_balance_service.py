@@ -11,7 +11,7 @@ from ams.services import eod_service, account_balance_service
 
 def add_stock_transaction_to_balance(stock_transaction, stock, account):
     stock_balance, created = models.StockBalance.objects.get_or_create(
-        isin=stock_transaction.isin,
+        asset_id=stock_transaction.asset_id,
         account=account,
         defaults={
             'quantity': 0,
@@ -21,11 +21,9 @@ def add_stock_transaction_to_balance(stock_transaction, stock, account):
     )
     if created:
         fetch_missing_price_changes(stock_balance, stock, stock_transaction.date.date())
-        rebuild_stock_balance(stock_balance, stock_transaction.date.date())
     else:
-        if not stock_balance.first_event_date or stock_balance.first_event_date > stock_transaction.date.date():
+        if not stock_balance.first_event_date or stock_balance.first_event_date >= stock_transaction.date.date():
             fetch_missing_price_changes(stock_balance, stock, stock_transaction.date.date())
-            rebuild_stock_balance(stock_balance, stock_transaction.date.date())
         elif stock_balance.last_save_date >= stock_transaction.date.date():
             rebuild_stock_balance(stock_balance, stock_transaction.date.date())
         elif stock_balance.last_transaction_date > stock_transaction.date:
@@ -79,15 +77,15 @@ def update_stock_price(utc_now=datetime.datetime.utcnow()):
             if stock.ticker not in current_prices:
                 continue
             current_price = current_prices[stock.ticker]
-            stock_balances = models.StockBalance.objects.filter(isin=stock.isin)
+            stock_balances = models.StockBalance.objects.filter(asset_id=stock.id)
             for stock_balance in stock_balances:
                 stock_transaction = models.StockTransaction.objects.create(
-                    isin=stock_balance.isin,
+                    asset_id=stock_balance.asset_id,
                     account=stock_balance.account,
                     transaction_type='price',
                     quantity=0,
                     price=current_price,
-                    date=utc_closing_time,
+                    date=utc_closing_time.replace(hour=23, minute=59, second=59, microsecond=999999, tzinfo=None)
                 )
                 stock_transaction.save()
                 add_stock_transaction_to_balance(stock_transaction, stock, stock_balance.account)
@@ -95,28 +93,36 @@ def update_stock_price(utc_now=datetime.datetime.utcnow()):
 
 def fetch_missing_price_changes(stock_balance, stock, begin):
     end = stock_balance.first_event_date if stock_balance.first_event_date else datetime.datetime.now().date()
+    begin = begin - datetime.timedelta(days=1)
     end = end - datetime.timedelta(days=1)
+    if begin > end:
+        begin = end
     price_changes = eod_service.get_price_changes(stock, begin, end)
 
+    first_event_date = begin
     for price_change in price_changes:
+        date = datetime.datetime.strptime(price_change['date'], '%Y-%m-%d').replace(hour=23, minute=59, second=59,
+                                                                                    microsecond=999999)
         stock_transaction = models.StockTransaction.objects.create(
-            isin=stock_balance.isin,
+            asset_id=stock_balance.asset_id,
             account=stock_balance.account,
             transaction_type='price',
             quantity=0,
             price=price_change['close'],
-            date=price_change['date'],
+            date=date,
         )
         stock_transaction.save()
-    stock_balance.first_event_date = begin
+        first_event_date = min(first_event_date, date.date())
+    stock_balance.first_event_date = first_event_date
+    rebuild_stock_balance(stock_balance, first_event_date)
 
 
 def rebuild_stock_balance(stock_balance, rebuild_date):
     history_date = rebuild_date - datetime.timedelta(days=1)
-    stock_balance_history = models.StockBalanceHistory.objects.filter(isin=stock_balance.isin,
+    stock_balance_history = models.StockBalanceHistory.objects.filter(asset_id=stock_balance.asset_id,
                                                                       account=stock_balance.account,
                                                                       date=history_date).first()
-    models.StockBalanceHistory.objects.filter(isin=stock_balance.isin,
+    models.StockBalanceHistory.objects.filter(asset_id=stock_balance.asset_id,
                                               account=stock_balance.account,
                                               date__gte=rebuild_date).delete()
 
@@ -129,7 +135,7 @@ def rebuild_stock_balance(stock_balance, rebuild_date):
         stock_balance.price = 0
         stock_balance.result = 0
 
-    transactions_on_date = models.StockTransaction.objects.filter(isin=stock_balance.isin,
+    transactions_on_date = models.StockTransaction.objects.filter(asset_id=stock_balance.asset_id,
                                                                   account=stock_balance.account,
                                                                   date__gte=rebuild_date).order_by('date')
     today = datetime.datetime.now().date()
@@ -139,7 +145,7 @@ def rebuild_stock_balance(stock_balance, rebuild_date):
             update_stock_balance(transaction, stock_balance)
 
         models.StockBalanceHistory.objects.create(
-            isin=stock_balance.isin,
+            asset_id=stock_balance.asset_id,
             account=stock_balance.account,
             date=rebuild_date + datetime.timedelta(days=day),
             quantity=stock_balance.quantity,
@@ -177,11 +183,12 @@ def buy_stocks(buy_command):
             ticker=buy_command.ticker,
             name=stock_from_api['Name'],
             currency=stock_from_api['Currency'],
-            exchange=exchange
+            exchange=exchange,
+            type="STOCK" if buy_command.exchange_code != "CC" else "CRYPTO"
         )
     stock_transaction = models.StockTransaction(
         account=account,
-        isin=stock.isin,
+        asset_id=stock.id,
         quantity=buy_command.quantity,
         price=buy_command.price,
         transaction_type='buy',
@@ -197,34 +204,35 @@ def buy_stocks(buy_command):
 
 
 def modify_stock_transaction(stock_transaction, old_stock_transaction_date):
-    stock_balance = models.StockBalance.objects.get(isin=stock_transaction.isin, account=stock_transaction.account)
-    stock = models.Stock.objects.get(isin=stock_transaction.isin)
+    stock_balance = models.StockBalance.objects.get(asset_id=stock_transaction.asset_id, account=stock_transaction.account)
+    stock = models.Stock.objects.get(id=stock_transaction.asset_id)
     older_transaction_date = min(old_stock_transaction_date.date(), stock_transaction.date.date())
-    if stock_balance.first_event_date > older_transaction_date:
+    if stock_balance.first_event_date >= older_transaction_date:
         fetch_missing_price_changes(stock_balance, stock, older_transaction_date)
-    rebuild_stock_balance(stock_balance, older_transaction_date)
+    else:
+        rebuild_stock_balance(stock_balance, older_transaction_date)
 
     if models.Transaction.objects.filter(correlation_id=stock_transaction.id).exists():
-        # TODO: modify correlated account transaction and rebuild
-        pass
+        account_balance_service.modify_transaction_from_stock(stock_transaction, stock, stock_transaction.account)
 
 
 @transaction.atomic
 def delete_stock_transaction(stock_transaction):
-    stock_balance = models.StockBalance.objects.get(isin=stock_transaction.isin, account=stock_transaction.account)
+    stock_balance = models.StockBalance.objects.get(asset_id=stock_transaction.asset_id, account=stock_transaction.account)
+    stock_transaction_id = stock_transaction.id
     stock_transaction.delete()
     rebuild_stock_balance(stock_balance, stock_transaction.date.date())
 
-    if models.Transaction.objects.filter(correlation_id=stock_transaction.id).exists():
-        # TODO: delete correlated account transaction and rebuild
-        pass
+    if models.Transaction.objects.filter(correlation_id=stock_transaction_id).exists():
+        account_transaction = models.Transaction.objects.get(correlation_id=stock_transaction_id)
+        account_balance_service.delete_transaction(account_transaction)
 
 
 def get_stock_price_in_base_currency(stock_balance, stock):
     stock_currency = stock.currency
     base_currency = stock_balance.account.account_preferences.base_currency
     if stock_currency == base_currency:
-        return stock_balance.price
+        return stock_balance.price, stock_currency
     currency_pair = f'{stock_currency}{base_currency}'
     rates = eod_service.get_current_currency_price(currency_pair)
     value_in_base = stock_balance.price * decimal.Decimal(rates[currency_pair])
