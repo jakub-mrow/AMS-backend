@@ -88,7 +88,10 @@ def rebuild_account_balance(account, rebuild_date):
     # TODO Put fetching account histories and account balances to function
     account_balances = models.AccountBalance.objects.filter(account_id=account.id)
     account_balances_by_currency = {account_balance.currency: account_balance for account_balance in account_balances}
-    currencies = account_balances_by_currency.keys()
+    currencies = list(account_balances_by_currency.keys())
+    currencies_from_transactions = models.Transaction.objects.filter(account_id=account.id).values_list('currency',
+                                                                                                        flat=True).distinct()
+    currencies = list(set(currencies + list(currencies_from_transactions)))
 
     if account_history:
         account_balance_histories = models.AccountHistoryBalance.objects.filter(account_history__id=account_history.id)
@@ -98,11 +101,24 @@ def rebuild_account_balance(account, rebuild_date):
         for currency in currencies:
             if currency in account_balance_histories_by_currency:
                 account_balances_by_currency[currency].amount = account_balance_histories_by_currency[currency].amount
-            else:
+            elif currency in account_balances_by_currency:
                 account_balances_by_currency[currency].amount = 0
+            else:
+                account_balances_by_currency[currency] = models.AccountBalance.objects.create(
+                    account_id=account.id,
+                    currency=currency,
+                    amount=0
+                )
     else:
         for currency in currencies:
-            account_balances_by_currency[currency].amount = 0
+            if currency in account_balances_by_currency:
+                account_balances_by_currency[currency].amount = 0
+            else:
+                account_balances_by_currency[currency] = models.AccountBalance.objects.create(
+                    account_id=account.id,
+                    currency=currency,
+                    amount=0
+                )
 
     current_date = rebuild_date
     yesterday = datetime.now().date() - timedelta(days=1)
