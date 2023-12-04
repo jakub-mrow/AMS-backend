@@ -23,7 +23,7 @@ from ams.services.stock_balance_service import update_stock_price
 from ams.services import stock_balance_service, eod_service
 from ams.services.account_balance_service import add_transaction_from_stock, rebuild_account_balance, \
     add_transaction_to_account_balance
-from ams.services.stock_balance_service import update_stock_price, update_average_price
+from ams.services.stock_balance_service import update_stock_price, update_average_price, update_current_result
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -222,7 +222,7 @@ class StockTransactionViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         try:
-            stock = models.Stock.objects.get(pk=serializer.validated_data['id'])
+            stock = models.Stock.objects.get(pk=serializer.validated_data['asset_id'])
         except models.Stock.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
@@ -233,7 +233,10 @@ class StockTransactionViewSet(viewsets.ViewSet):
 
                 stock_balance = stock_balance_service.add_stock_transaction_to_balance(stock_transaction, stock, account)
                 add_transaction_from_stock(stock_transaction, stock, account)
-                update_average_price(stock_balance, stock_transaction)
+                if stock_transaction.transaction_type == models.StockTransaction.BUY or \
+                        stock_transaction.transaction_type == models.StockTransaction.SELL:
+                    update_average_price(stock_balance)
+                update_current_result(stock_balance)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
