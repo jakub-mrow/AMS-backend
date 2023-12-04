@@ -33,6 +33,7 @@ def add_stock_transaction_to_balance(stock_transaction, stock, account):
         else:
             update_stock_balance(stock_transaction, stock_balance)
             stock_balance.save()
+    return stock_balance
 
 
 def update_stock_balance(stock_transaction, stock_balance):
@@ -52,25 +53,31 @@ def update_stock_balance(stock_transaction, stock_balance):
 
 
 def update_average_price(stock_balance, stock_transaction):
-    stock_transactions = models.StockTransaction.objects.filter(
+    stock_transactions = list(models.StockTransaction.objects.filter(
         isin=stock_balance.isin,
         account=stock_balance.account
-    ).order_by('date')
-    stock_transactions += stock_transaction
+    ).order_by('date'))
+    stock_transactions.append(stock_transaction)
 
-    stock_history = []
+    stock_history = list()
     for transaction in stock_transactions:
         if transaction.transaction_type == 'buy':
             stock_history.append((transaction.quantity, transaction.price))
         elif transaction.transaction_type == 'sell':
-            for history in stock_history:
-                if history[0] >= transaction.quantity:
-                    history[0] -= transaction.quantity
+            remaining_quantity = transaction.quantity
+            for i, history in enumerate(stock_history):
+                if remaining_quantity <= 0:
+                    break
+
+                if history[0] >= remaining_quantity:
+                    new_quantity = history[0] - remaining_quantity
+                    stock_history[i] = (new_quantity, history[1])
                     break
                 else:
-                    transaction.quantity -= history[0]
-                    history[0] = 0
-    stock_history = [history for history in stock_history if history[0] > 0]
+                    remaining_quantity -= history[0]
+                    stock_history[i] = (0, history[1])
+    stock_history = list([history for history in stock_history if history[0] > 0])
+    print(stock_history)
     if len(stock_history) == 0:
         stock_balance.average_price = 0
         return
@@ -79,6 +86,7 @@ def update_average_price(stock_balance, stock_transaction):
         average_price += history[0] * history[1]
     average_price /= (stock_balance.quantity + stock_transaction.quantity)
     stock_balance.average_price = average_price
+    stock_balance.save()
 
 
 
