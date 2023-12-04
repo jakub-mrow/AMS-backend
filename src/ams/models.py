@@ -66,11 +66,11 @@ class AccountBalance(models.Model):
 class Exchange(models.Model):
     name = models.CharField(max_length=128)
     mic = models.CharField(max_length=10)
-    country = models.CharField(max_length=128)
+    country = models.CharField(max_length=128, null=True, blank=True)
     code = models.CharField(max_length=20)
-    timezone = models.CharField(max_length=100)
-    opening_hour = models.TimeField()
-    closing_hour = models.TimeField()
+    timezone = models.CharField(max_length=100, null=True, blank=True)
+    opening_hour = models.TimeField(null=True, blank=True)
+    closing_hour = models.TimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.name}"
@@ -89,7 +89,7 @@ class StockTransaction(models.Model):
     )
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='stock_transaction')
-    isin = models.CharField(max_length=12)
+    asset_id = models.IntegerField()
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=13, decimal_places=2)
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPE_CHOICES)
@@ -103,18 +103,23 @@ class StockTransaction(models.Model):
 
 
 class Stock(models.Model):
-    isin = models.CharField(max_length=12, primary_key=True)
-    ticker = models.CharField(max_length=5)
+    STOCK_TYPE_CHOICES = [
+        ('STOCK', 'Stock'),
+        ('CRYPTO', 'Cryptocurrency'),
+    ]
+    isin = models.CharField(max_length=12, null=True, blank=True)
+    ticker = models.CharField(max_length=10)
     name = models.CharField(max_length=128)
     currency = models.CharField(max_length=3)
     exchange = models.ForeignKey(Exchange, on_delete=models.CASCADE)
+    type = models.CharField(max_length=6, choices=STOCK_TYPE_CHOICES, default='STOCK')
 
     def __str__(self):
         return f"{self.name} on {self.exchange}"
 
 
 class StockBalance(models.Model):
-    isin = models.CharField(max_length=12)
+    asset_id = models.IntegerField()
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='stock_balance')
     quantity = models.IntegerField()
     price = models.DecimalField(max_digits=13, decimal_places=2)
@@ -124,11 +129,11 @@ class StockBalance(models.Model):
     last_transaction_date = models.DateTimeField(null=True)
 
     def __str__(self):
-        return f"{self.quantity} of {self.isin} for {self.account_id}"
+        return f"{self.quantity} of {self.asset_id} for {self.account_id}"
 
 
 class StockBalanceHistory(models.Model):
-    isin = models.CharField(max_length=12)
+    asset_id = models.IntegerField()
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     date = models.DateField()
     quantity = models.IntegerField()

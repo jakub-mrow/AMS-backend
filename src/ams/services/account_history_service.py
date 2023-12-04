@@ -17,8 +17,8 @@ def get_account_history_dtos(account):
     history_balances = models.AccountHistoryBalance.objects.filter(account_history__in=histories).select_related(
         'account_history')
     stock_history_balances = models.StockBalanceHistory.objects.filter(account=account)
-    stocks = models.Stock.objects.filter(isin__in=stock_history_balances.values_list('isin', flat=True).distinct())
-    isin_to_currency = {stock.isin: stock.currency for stock in stocks}
+    stocks = models.Stock.objects.filter(id__in=stock_history_balances.values_list('asset_id', flat=True).distinct())
+    asset_id_to_currency = {stock.id: stock.currency for stock in stocks}
     date_to_history = {history.date: history for history in histories}
     date_to_history_balances = defaultdict(list)
     for balance in history_balances:
@@ -31,7 +31,7 @@ def get_account_history_dtos(account):
     for balance in history_balances:
         if balance.currency != base_currency:
             currencies.append(f'{balance.currency}{base_currency}')
-    for currency in isin_to_currency.values():
+    for currency in asset_id_to_currency.values():
         if currency != base_currency:
             currencies.append(f'{currency}{base_currency}')
     currencies = list(set(currencies))
@@ -52,11 +52,11 @@ def get_account_history_dtos(account):
                 amount += balance.amount * decimal.Decimal(currency_pairs[f'{balance.currency}{base_currency}'])
         if date in date_to_stock_history_balances:
             for stock_balance in date_to_stock_history_balances[date]:
-                if isin_to_currency[stock_balance.isin] == base_currency:
+                if asset_id_to_currency[stock_balance.asset_id] == base_currency:
                     amount += stock_balance.quantity * stock_balance.price
                 else:
                     rate = decimal.Decimal(
-                        currency_pairs[f'{isin_to_currency[stock_balance.isin]}{base_currency}'])
+                        currency_pairs[f'{asset_id_to_currency[stock_balance.asset_id]}{base_currency}'])
                     amount += stock_balance.quantity * stock_balance.price * rate
         dtos.append(AccountHistoryDto(amount, date))
     return dtos

@@ -190,7 +190,7 @@ class StockViewSet(viewsets.ViewSet):
 
         serializer = serializers.StockSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(exchange=exchange)
+        serializer.save(exchange=exchange, type="STOCK" if exchange.code != "CC" else "CRYPTO")
         logging.info("Stock added")
         return Response({"msg": "Stock added"}, status=status.HTTP_201_CREATED)
 
@@ -218,7 +218,7 @@ class StockTransactionViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         try:
-            stock = models.Stock.objects.get(pk=serializer.validated_data['isin'])
+            stock = models.Stock.objects.get(pk=serializer.validated_data['id'])
         except models.Stock.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
@@ -240,9 +240,9 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        isin = self.request.query_params.get('isin')
-        if isin:
-            stock_transactions = models.StockTransaction.objects.filter(account=account, isin=isin).order_by('-date')
+        asset_id = self.request.query_params.get('id')
+        if asset_id:
+            stock_transactions = models.StockTransaction.objects.filter(account=account, asset_id=asset_id).order_by('-date')
         else:
             stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
         stock_transactions = stock_transactions.filter(
@@ -319,7 +319,7 @@ class StockBalanceViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        stock_balance = models.StockBalance.objects.filter(isin=pk, account=account).first()
+        stock_balance = models.StockBalance.objects.filter(asset_id=pk, account=account).first()
         serializer = serializers.StockBalanceDtoSerializer(stock_balance, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -345,17 +345,17 @@ class StockBalanceViewSet(viewsets.ViewSet):
         to_date = request.query_params.get('to')
 
         if from_date and to_date:
-            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account,
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(asset_id=pk, account=account,
                                                                                 date__gte=from_date,
                                                                                 date__lte=to_date).order_by('date')
         elif from_date:
-            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account,
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(asset_id=pk, account=account,
                                                                                 date__gte=from_date).order_by('date')
         elif to_date:
-            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account,
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(asset_id=pk, account=account,
                                                                                 date__lte=to_date).order_by('date')
         else:
-            stock_balance_histories = models.StockBalanceHistory.objects.filter(isin=pk, account=account).order_by(
+            stock_balance_histories = models.StockBalanceHistory.objects.filter(asset_id=pk, account=account).order_by(
                 'date')
         serializer = serializers.StockBalanceHistoryDtoSerializer(stock_balance_histories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -370,7 +370,7 @@ class StockBalanceViewSet(viewsets.ViewSet):
         except models.Stock.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
-        stock_balance = models.StockBalance.objects.filter(isin=pk, account=account).first()
+        stock_balance = models.StockBalance.objects.filter(asset_id=pk, account=account).first()
         try:
             price, currency = stock_balance_service.get_stock_price_in_base_currency(stock_balance, stock)
             return Response({"price": price, "currency": currency}, status=status.HTTP_200_OK)
