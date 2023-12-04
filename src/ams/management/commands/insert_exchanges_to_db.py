@@ -21,8 +21,8 @@ class Command(BaseCommand):
                             'country': entry['country'],
                             'code': entry['code'],
                             'timezone': entry['timezone'],
-                            'opening_hour': parse_time(entry['open']),
-                            'closing_hour': parse_time(entry['close'])
+                            'opening_hour': parse_time(entry['open']) if entry['open'] else None,
+                            'closing_hour': parse_time(entry['close']) if entry['close'] else None,
                         }
                     )
 
