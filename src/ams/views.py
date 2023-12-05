@@ -231,12 +231,7 @@ class StockTransactionViewSet(viewsets.ViewSet):
                 stock_transaction = serializer.save()
                 stock_balance_service.add_stock_transaction_to_balance(stock_transaction, stock, account)
 
-                stock_balance = stock_balance_service.add_stock_transaction_to_balance(stock_transaction, stock, account)
                 add_transaction_from_stock(stock_transaction, stock, account)
-                if stock_transaction.transaction_type == models.StockTransaction.BUY or \
-                        stock_transaction.transaction_type == models.StockTransaction.SELL:
-                    update_average_price(stock_balance)
-                update_current_result(stock_balance)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 

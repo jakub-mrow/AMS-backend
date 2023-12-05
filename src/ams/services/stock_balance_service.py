@@ -28,6 +28,10 @@ def add_stock_transaction_to_balance(stock_transaction, stock, account):
             rebuild_stock_balance(stock_balance, datetime.datetime.now().date())
         else:
             update_stock_balance(stock_transaction, stock_balance)
+            if stock_transaction.transaction_type == models.StockTransaction.BUY or \
+                    stock_transaction.transaction_type == models.StockTransaction.SELL:
+                update_average_price(stock_balance)
+            update_current_result(stock_balance)
             stock_balance.save()
     return stock_balance
 
@@ -79,12 +83,10 @@ def update_average_price(stock_balance):
         average_price += history[0] * history[1]
     average_price /= stock_balance.quantity
     stock_balance.average_price = average_price
-    stock_balance.save()
 
 
 def update_current_result(stock_balance):
     stock_balance.result = (stock_balance.price - stock_balance.average_price) / stock_balance.average_price
-    stock_balance.save()
 
 
 def update_stock_price(utc_now=datetime.datetime.utcnow()):
@@ -194,6 +196,8 @@ def rebuild_stock_balance(stock_balance, rebuild_date):
     for transaction in today_transactions:
         update_stock_balance(transaction, stock_balance)
     stock_balance.last_save_date = yesterday
+    update_average_price(stock_balance)
+    update_current_result(stock_balance)
     stock_balance.save()
 
 
