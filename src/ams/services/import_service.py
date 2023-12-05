@@ -93,7 +93,7 @@ class DegiroImportStockTransactionsStrategy(ImportStockTransactionsStrategy):
         result['price'] = result.iloc[:, self.PRICE]
         result['pay_currency'] = result.iloc[:, self.CURRENCY]
         result['exchange_rate'] = result.iloc[:, self.EXCHANGE_RATE]
-        result['commission'] = result.iloc[:, self.COMMISSION]
+        result['commission'] = result.iloc[:, self.COMMISSION].abs()
         return result
 
     def is_valid(self, data):
