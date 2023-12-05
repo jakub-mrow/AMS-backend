@@ -1,9 +1,11 @@
 import datetime
+
 import pytz
-from ams import models
-from ams.services import eod_service, account_balance_service
 from django.db import transaction
 from pytz import timezone
+
+from ams import models
+from ams.services import eod_service, account_balance_service
 
 
 class NotEnoughStockException(Exception):
@@ -151,7 +153,7 @@ def fetch_missing_price_changes(stock_balance, stock, begin):
             account=stock_balance.account,
             transaction_type='price',
             quantity=0,
-            price=price_change['close'],
+            price=price_change['adjusted_close'],
             date=date,
         )
         stock_transaction.save()
