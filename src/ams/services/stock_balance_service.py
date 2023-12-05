@@ -6,6 +6,9 @@ from django.db import transaction
 from pytz import timezone
 
 
+class NotEnoughStockException(Exception):
+    pass
+
 def add_stock_transaction_to_balance(stock_transaction, stock, account):
     stock_balance, created = models.StockBalance.objects.get_or_create(
         asset_id=stock_transaction.asset_id,
@@ -41,7 +44,7 @@ def update_stock_balance(stock_transaction, stock_balance):
         stock_balance.quantity += stock_transaction.quantity
     elif stock_transaction.transaction_type == 'sell':
         if stock_balance.quantity < stock_transaction.quantity:
-            raise Exception('Not enough stocks to sell.')
+            raise NotEnoughStockException
         stock_balance.quantity -= stock_transaction.quantity
     elif stock_transaction.transaction_type == 'price':
         stock_balance.price = stock_transaction.price
