@@ -61,6 +61,26 @@ def add_transaction_from_stock(stock_transaction, stock, account):
     account_transaction.save()
     add_transaction_to_account_balance(account_transaction, account)
 
+def add_transaction_from_stock_for_import(stock_transaction, stock, account):
+    currency = stock_transaction.pay_currency if stock_transaction.pay_currency else stock.currency
+    exchange_rate = stock_transaction.exchange_rate if stock_transaction.exchange_rate else 1
+    if stock_transaction.transaction_type == models.StockTransaction.DIVIDEND:
+        amount = stock_transaction.price * exchange_rate
+    else:
+        commission = stock_transaction.commission if stock_transaction.commission else 0
+        amount = stock_transaction.quantity * stock_transaction.price * exchange_rate + commission
+
+    account_transaction = models.Transaction.objects.create(
+        account_id=stock_transaction.account_id,
+        type=stock_transaction.transaction_type,
+        amount=amount,
+        currency=currency,
+        date=stock_transaction.date,
+        account=account,
+        correlation_id=stock_transaction.id
+    )
+    account_transaction.save()
+
 
 def modify_transaction_from_stock(stock_transaction, stock, account):
     account_transaction = models.Transaction.objects.get(correlation_id=stock_transaction.id)

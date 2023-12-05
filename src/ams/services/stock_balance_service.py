@@ -1,10 +1,15 @@
 import datetime
+
 import pytz
-from ams import models
-from ams.services import eod_service, account_balance_service
 from django.db import transaction
 from pytz import timezone
 
+from ams import models
+from ams.services import eod_service, account_balance_service
+
+
+class NotEnoughStockException(Exception):
+    pass
 
 def add_stock_transaction_to_balance(stock_transaction, stock, account):
     stock_balance, created = models.StockBalance.objects.get_or_create(
@@ -41,7 +46,7 @@ def update_stock_balance(stock_transaction, stock_balance):
         stock_balance.quantity += stock_transaction.quantity
     elif stock_transaction.transaction_type == 'sell':
         if stock_balance.quantity < stock_transaction.quantity:
-            raise Exception('Not enough stocks to sell.')
+            raise NotEnoughStockException
         stock_balance.quantity -= stock_transaction.quantity
     elif stock_transaction.transaction_type == 'price':
         stock_balance.price = stock_transaction.price
@@ -148,7 +153,7 @@ def fetch_missing_price_changes(stock_balance, stock, begin):
             account=stock_balance.account,
             transaction_type='price',
             quantity=0,
-            price=price_change['close'],
+            price=price_change['adjusted_close'],
             date=date,
         )
         stock_transaction.save()

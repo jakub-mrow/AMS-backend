@@ -1,12 +1,13 @@
 import concurrent
 import logging
 from datetime import datetime, timedelta
-from copy import copy, deepcopy
-import requests
+
 import pandas as pd
+import requests
+from dateutil.relativedelta import relativedelta
+
 from ams import models, serializers
 from main.settings import EOD_TOKEN, EOD_API_URL
-from dateutil.relativedelta import relativedelta
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ def get_bulk_last_day_price(stocks, exchange, date):
             params['date'] = date.strftime('%Y-%m-%d')
             response = requests.get(url, timeout=10.0, params=params)
             data = response.json()
-        return {d['code']: d['close'] for d in data}
+        return {d['code']: d['adjusted_close'] for d in data}
     except Exception as e:
         logger.exception(e)
         return {}

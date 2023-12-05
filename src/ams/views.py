@@ -15,15 +15,12 @@ from rest_framework.views import APIView
 from ams import models, serializers, tasks
 from ams.permissions import IsObjectOwner
 from ams.serializers import ExchangeSerializer
-from ams.services import stock_balance_service, eod_service, account_history_service, account_balance_service, \
+from ams.services import account_history_service, account_balance_service, \
     import_service
-from ams.services.account_balance_service import (add_transaction_from_stock, add_transaction_to_account_balance)
+from ams.services import stock_balance_service, eod_service
+from ams.services.account_balance_service import add_transaction_from_stock, add_transaction_to_account_balance
 from ams.services.import_service import IncorrectFileFormatException, UnknownAssetException
 from ams.services.stock_balance_service import update_stock_price
-from ams.services import stock_balance_service, eod_service
-from ams.services.account_balance_service import add_transaction_from_stock, rebuild_account_balance, \
-    add_transaction_to_account_balance
-from ams.services.stock_balance_service import update_stock_price, update_average_price, update_current_result
 
 logger = logging.getLogger(__name__)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
@@ -527,3 +524,28 @@ def stock_transactions(request):
     response['Content-Disposition'] = 'attachment; filename=TODO.csv'
     result.to_csv(response, header=False, index=False)
     return response
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def csv_stock_transactions(request, account_id):
+    try:
+        account = models.Account.objects.get(pk=account_id, user=request.user)
+    except models.Account.DoesNotExist:
+        return Response({"error": "Account not found."}, status=404)
+    serializer = serializers.FileUploadSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    file = serializer.validated_data['file']
+    if file.content_type not in ["text/csv"]:
+        return Response({"error": "File type not supported"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        import_service.import_csv(file, account)
+    except IncorrectFileFormatException:
+        return Response({"error": "File has incorrect format"}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        logger.exception(e)
+        return Response({"error": "Import failed"}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response({"msg": "Import successful"}, status=status.HTTP_200_OK)
