@@ -616,6 +616,66 @@ paths:
                 current_price: 64.2
                 previous_close: 63.07
                 percentage_change_previous_close: 1.79
+
+  /api/get_stock_history:
+    get:
+      tags:
+        - Stocks
+      summary: Get stock historical price change
+      description: Get stock historical price change
+      operationId: getStockHistoricalChange
+      parameters:
+        - in: query
+          name: stock
+          schema:
+            type: string
+            example: NVDA
+          required: true
+          description: Stock ticker
+        - in: query
+          name: exchange
+          schema:
+            type: string
+            example: US
+          required: true
+          description: Exchange code
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  today:
+                    type: number
+                    example: 1.33
+                  week:
+                    type: number
+                    example: -3.57
+                  month:
+                    type: number
+                    example: 2.47
+                  three_months:
+                    type: number
+                    example: -5.0
+                  six_months:
+                    type: number
+                    example: 17.75
+                  year:
+                    type: number
+                    example: 177.74
+                  three_years:
+                    type: number
+                    example: 240.87
+                  five_years:
+                    type: number
+                    example: 1083.2
+                  all_time:
+                    type: number
+                    example: 122483.73
+
+
   #Exchanges
   /api/exchanges:
     get:
