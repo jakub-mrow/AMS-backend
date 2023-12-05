@@ -141,8 +141,11 @@ class Trading212ImportStockTransactionsStrategy(ImportStockTransactionsStrategy)
         result.loc[result.iloc[:, self.ACTION] == "Market sell", 'type'] = "sell"
         result['quantity'] = result.iloc[:, self.NO_OF_SHARES]
         result['price'] = result.iloc[:, self.PRICE_PER_SHARE]
-        result['pay_currency'] = result.iloc[:, self.CURRENCY]
-        result['exchange_rate'] = 1 / result.iloc[:, self.EXCHANGE_RATE]
+        result['pay_currency'] = result.apply(lambda x: x[self.CURRENCY] if x[self.EXCHANGE_RATE] != 1 else None,
+                                              axis=1)
+        result['exchange_rate'] = result.apply(lambda x: x[self.EXCHANGE_RATE] if x[self.EXCHANGE_RATE] != 1 else None,
+                                               axis=1)
+        result['commission'] = None
         return result
 
     def is_valid(self, data):
