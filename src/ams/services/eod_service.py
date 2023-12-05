@@ -1,11 +1,12 @@
 import concurrent
 import logging
 from datetime import datetime, timedelta
-
+from copy import copy, deepcopy
 import requests
-
+import pandas as pd
 from ams import models, serializers
 from main.settings import EOD_TOKEN, EOD_API_URL
+from dateutil.relativedelta import relativedelta
 
 logger = logging.getLogger(__name__)
 
@@ -163,10 +164,13 @@ def get_price_changes_2(stock, exchange, begin, end, period):
     params = {
         'api_token': EOD_TOKEN,
         'fmt': 'json',
-        'from': begin.strftime('%Y-%m-%d'),
-        'to': end.strftime('%Y-%m-%d'),
         'period': period
     }
+    if begin:
+        params['from'] = begin.strftime('%Y-%m-%d')
+    if end:
+        params['to'] = end.strftime('%Y-%m-%d')
+
     url = f'{EOD_API_URL}/eod/{stock}.{exchange}'
 
     try:
@@ -197,6 +201,68 @@ def get_stock_details(stock, exchange, period, from_date, to_date):
     }
 
     return stock_details
+
+
+def get_stock_history(stock, exchange, from_date, to_date):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        price_changes_future = executor.submit(get_price_changes_2, stock, exchange, from_date, to_date, 'd')
+        current_price_future = executor.submit(get_current_price, stock, exchange)
+
+    eod_data = price_changes_future.result()
+    current_info = current_price_future.result()
+
+    df = pd.DataFrame(eod_data)
+    df["date"] = pd.to_datetime(df["date"])
+    oldest_date = df["date"].min()
+    newest_date = df["date"].max()
+    date_range = pd.date_range(start=oldest_date, end=newest_date)
+    merged_df = pd.merge(df, pd.DataFrame(date_range, columns=["date"]), on="date", how="right")
+    merged_df = merged_df.sort_values(by="date")
+
+    merged_df["close"].fillna(method='ffill', inplace=True)
+    merged_df["adjusted_close"].fillna(method='ffill', inplace=True)
+    merged_df["high"].fillna(method='ffill', inplace=True)
+    current_date = datetime.now()
+
+    current_price = current_info['close']
+    time_deltas = [
+        relativedelta(days=7),
+        relativedelta(months=1),
+        relativedelta(months=3),
+        relativedelta(months=6),
+        relativedelta(years=1),
+        relativedelta(years=3),
+        relativedelta(years=5),
+    ]
+
+    percentage_changes = {}
+
+    for delta in time_deltas:
+        start_date = current_date - delta
+        on_day = merged_df[merged_df['date'] == start_date.strftime('%Y-%m-%d')]
+        start_price = on_day.iloc[0]['adjusted_close']
+        percentage_change = round(((current_price - start_price) / start_price) * 100, 2)
+        percentage_changes[delta] = percentage_change
+
+    all_time = merged_df.iloc[0]['adjusted_close']
+    all_time = round(((current_price - all_time) / all_time) * 100, 2)
+
+    yesterday = current_info['previousClose']
+    today = round((current_info['close'] - yesterday) / yesterday * 100, 2)
+
+    stock_history = {
+        'today': today,
+        'week': percentage_changes[time_deltas[0]],
+        'month': percentage_changes[time_deltas[1]],
+        'three_months': percentage_changes[time_deltas[2]],
+        'six_months': percentage_changes[time_deltas[3]],
+        'year': percentage_changes[time_deltas[4]],
+        'three_years': percentage_changes[time_deltas[5]],
+        'five_years': percentage_changes[time_deltas[6]],
+        'all_time': all_time
+    }
+
+    return stock_history
 
 
 def get_stock_news(stock):
