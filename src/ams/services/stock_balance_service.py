@@ -1,12 +1,9 @@
 import datetime
-import decimal
-
 import pytz
-from django.db import transaction
-from pytz import timezone
-
 from ams import models
 from ams.services import eod_service, account_balance_service
+from django.db import transaction
+from pytz import timezone
 
 
 def add_stock_transaction_to_balance(stock_transaction, stock, account):
@@ -17,6 +14,7 @@ def add_stock_transaction_to_balance(stock_transaction, stock, account):
             'quantity': 0,
             'result': 0,
             'price': 0,
+            'average_price': 0
         }
     )
     if created:
@@ -30,7 +28,12 @@ def add_stock_transaction_to_balance(stock_transaction, stock, account):
             rebuild_stock_balance(stock_balance, datetime.datetime.now().date())
         else:
             update_stock_balance(stock_transaction, stock_balance)
+            if stock_transaction.transaction_type == models.StockTransaction.BUY or \
+                    stock_transaction.transaction_type == models.StockTransaction.SELL:
+                update_average_price(stock_balance)
+            update_current_result(stock_balance)
             stock_balance.save()
+    return stock_balance
 
 
 def update_stock_balance(stock_transaction, stock_balance):
@@ -47,6 +50,43 @@ def update_stock_balance(stock_transaction, stock_balance):
 
     if not stock_balance.last_transaction_date or stock_balance.last_transaction_date < stock_transaction.date:
         stock_balance.last_transaction_date = stock_transaction.date
+
+
+def update_average_price(stock_balance):
+    stock_transactions = list(models.StockTransaction.objects.filter(
+        asset_id=stock_balance.asset_id,
+        account=stock_balance.account
+    ).order_by('date'))
+    stock_history = list()
+    for transaction in stock_transactions:
+        if transaction.transaction_type == 'buy':
+            stock_history.append((transaction.quantity, transaction.price))
+        elif transaction.transaction_type == 'sell':
+            remaining_quantity = transaction.quantity
+            for i, history in enumerate(stock_history):
+                if remaining_quantity <= 0:
+                    break
+
+                if history[0] >= remaining_quantity:
+                    new_quantity = history[0] - remaining_quantity
+                    stock_history[i] = (new_quantity, history[1])
+                    break
+                else:
+                    remaining_quantity -= history[0]
+                    stock_history[i] = (0, history[1])
+    stock_history = list([history for history in stock_history if history[0] > 0])
+    if len(stock_history) == 0:
+        stock_balance.average_price = 0
+        return
+    average_price = 0
+    for history in stock_history:
+        average_price += history[0] * history[1]
+    average_price /= stock_balance.quantity
+    stock_balance.average_price = average_price
+
+
+def update_current_result(stock_balance):
+    stock_balance.result = (stock_balance.price - stock_balance.average_price) / stock_balance.average_price
 
 
 def update_stock_price(utc_now=datetime.datetime.utcnow()):
@@ -158,6 +198,8 @@ def rebuild_stock_balance(stock_balance, rebuild_date):
     for transaction in today_transactions:
         update_stock_balance(transaction, stock_balance)
     stock_balance.last_save_date = yesterday
+    update_average_price(stock_balance)
+    update_current_result(stock_balance)
     stock_balance.save()
 
 
@@ -204,7 +246,8 @@ def buy_stocks(buy_command):
 
 
 def modify_stock_transaction(stock_transaction, old_stock_transaction_date):
-    stock_balance = models.StockBalance.objects.get(asset_id=stock_transaction.asset_id, account=stock_transaction.account)
+    stock_balance = models.StockBalance.objects.get(asset_id=stock_transaction.asset_id,
+                                                    account=stock_transaction.account)
     stock = models.Stock.objects.get(id=stock_transaction.asset_id)
     older_transaction_date = min(old_stock_transaction_date.date(), stock_transaction.date.date())
     if stock_balance.first_event_date >= older_transaction_date:
@@ -218,7 +261,8 @@ def modify_stock_transaction(stock_transaction, old_stock_transaction_date):
 
 @transaction.atomic
 def delete_stock_transaction(stock_transaction):
-    stock_balance = models.StockBalance.objects.get(asset_id=stock_transaction.asset_id, account=stock_transaction.account)
+    stock_balance = models.StockBalance.objects.get(asset_id=stock_transaction.asset_id,
+                                                    account=stock_transaction.account)
     stock_transaction_id = stock_transaction.id
     stock_transaction.delete()
     rebuild_stock_balance(stock_balance, stock_transaction.date.date())
