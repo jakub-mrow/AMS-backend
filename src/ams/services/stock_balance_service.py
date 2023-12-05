@@ -1,4 +1,5 @@
 import datetime
+import decimal
 
 import pytz
 from django.db import transaction
@@ -10,6 +11,7 @@ from ams.services import eod_service, account_balance_service
 
 class NotEnoughStockException(Exception):
     pass
+
 
 def add_stock_transaction_to_balance(stock_transaction, stock, account):
     stock_balance, created = models.StockBalance.objects.get_or_create(
@@ -25,7 +27,7 @@ def add_stock_transaction_to_balance(stock_transaction, stock, account):
     if created:
         fetch_missing_price_changes(stock_balance, stock, stock_transaction.date.date())
     else:
-        if not stock_balance.first_event_date or stock_balance.first_event_date >= stock_transaction.date.date():
+        if not stock_balance.first_event_date or stock_balance.first_event_date > stock_transaction.date.date():
             fetch_missing_price_changes(stock_balance, stock, stock_transaction.date.date())
         elif stock_balance.last_save_date >= stock_transaction.date.date():
             rebuild_stock_balance(stock_balance, stock_transaction.date.date())
@@ -130,7 +132,8 @@ def update_stock_price(utc_now=datetime.datetime.utcnow()):
                     transaction_type='price',
                     quantity=0,
                     price=current_price,
-                    date=utc_closing_time.replace(hour=23, minute=59, second=59, microsecond=999999, tzinfo=None)
+                    date=utc_closing_time.replace(hour=0, minute=0, second=0, microsecond=0,
+                                                  tzinfo=None) + datetime.timedelta(days=1)
                 )
                 stock_transaction.save()
                 add_stock_transaction_to_balance(stock_transaction, stock, stock_balance.account)
@@ -146,8 +149,7 @@ def fetch_missing_price_changes(stock_balance, stock, begin):
 
     first_event_date = begin
     for price_change in price_changes:
-        date = datetime.datetime.strptime(price_change['date'], '%Y-%m-%d').replace(hour=23, minute=59, second=59,
-                                                                                    microsecond=999999)
+        date = datetime.datetime.strptime(price_change['date'], '%Y-%m-%d') + datetime.timedelta(days=1)
         stock_transaction = models.StockTransaction.objects.create(
             asset_id=stock_balance.asset_id,
             account=stock_balance.account,
@@ -255,7 +257,7 @@ def modify_stock_transaction(stock_transaction, old_stock_transaction_date):
                                                     account=stock_transaction.account)
     stock = models.Stock.objects.get(id=stock_transaction.asset_id)
     older_transaction_date = min(old_stock_transaction_date.date(), stock_transaction.date.date())
-    if stock_balance.first_event_date >= older_transaction_date:
+    if stock_balance.first_event_date > older_transaction_date:
         fetch_missing_price_changes(stock_balance, stock, older_transaction_date)
     else:
         rebuild_stock_balance(stock_balance, older_transaction_date)

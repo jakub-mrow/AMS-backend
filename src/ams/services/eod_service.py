@@ -150,7 +150,7 @@ def get_price_changes(stock, begin, end):
     try:
         response = requests.get(url, timeout=10.0, params=params)
         data = response.json()
-        while len(data) == 0:
+        while len(data) == 0 or data[0]['date'] != begin.strftime('%Y-%m-%d'):
             begin -= timedelta(days=1)
             params['from'] = begin.strftime('%Y-%m-%d')
             response = requests.get(url, timeout=10.0, params=params)

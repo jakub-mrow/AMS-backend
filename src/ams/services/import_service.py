@@ -355,6 +355,7 @@ def import_csv(file, account):
                         'quantity': 0,
                         'result': 0,
                         'price': 0,
+                        'average_price': 0,
                     }
                 )
                 first_date = stock_transactions["date"].min()
