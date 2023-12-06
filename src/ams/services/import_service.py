@@ -143,7 +143,7 @@ class Trading212ImportStockTransactionsStrategy(ImportStockTransactionsStrategy)
         result['price'] = result.iloc[:, self.PRICE_PER_SHARE]
         result['pay_currency'] = result.apply(lambda x: x[self.CURRENCY] if x[self.EXCHANGE_RATE] != 1 else None,
                                               axis=1)
-        result['exchange_rate'] = result.apply(lambda x: x[self.EXCHANGE_RATE] if x[self.EXCHANGE_RATE] != 1 else None,
+        result['exchange_rate'] = result.apply(lambda x: 1/x[self.EXCHANGE_RATE] if x[self.EXCHANGE_RATE] != 1 else None,
                                                axis=1)
         result['commission'] = None
         return result
@@ -371,8 +371,8 @@ def import_csv(file, account):
                         stock_balance_service.rebuild_stock_balance(stock_balance, first_date.date())
                 account_balance, created = models.AccountBalance.objects.get_or_create(
                     account_id=account.id,
-                    currency=stock_transactions.iloc[0]["pay_currency"] if stock_transactions.iloc[0][
-                        "pay_currency"] else stock.currency,
+                    currency=stock_transactions.iloc[0]["pay_currency"] if not pd.isna(stock_transactions.iloc[0][
+                        "pay_currency"]) else stock.currency,
                     defaults={
                         'amount': 0,
                     }

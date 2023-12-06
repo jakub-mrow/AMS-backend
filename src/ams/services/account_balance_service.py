@@ -87,8 +87,12 @@ def modify_transaction_from_stock(stock_transaction, stock, account):
     old_account_transaction_date = account_transaction.date
 
     currency = stock_transaction.pay_currency if stock_transaction.pay_currency else stock.currency
-    commission = stock_transaction.commission if stock_transaction.commission else 0
-    amount = stock_transaction.quantity * stock_transaction.price + commission
+    exchange_rate = stock_transaction.exchange_rate if stock_transaction.exchange_rate else 1
+    if stock_transaction.transaction_type == models.StockTransaction.DIVIDEND:
+        amount = stock_transaction.price * exchange_rate
+    else:
+        commission = stock_transaction.commission if stock_transaction.commission else 0
+        amount = stock_transaction.quantity * stock_transaction.price * exchange_rate + commission
 
     account_transaction.type = stock_transaction.transaction_type
     account_transaction.amount = amount
