@@ -174,11 +174,12 @@ def rebuild_stock_balance(stock_balance, rebuild_date):
     models.StockBalanceHistory.objects.filter(asset_id=stock_balance.asset_id,
                                               account=stock_balance.account,
                                               date__gte=rebuild_date).delete()
-
+    is_any_history = False
     if stock_balance_history:
         stock_balance.quantity = stock_balance_history.quantity
         stock_balance.price = stock_balance_history.price
         stock_balance.result = stock_balance_history.result
+        is_any_history = True
     else:
         stock_balance.quantity = 0
         stock_balance.price = 0
@@ -197,15 +198,17 @@ def rebuild_stock_balance(stock_balance, rebuild_date):
     for day in range((yesterday - rebuild_date).days + 1):
         for stock_transaction in stock_transactions_by_date[rebuild_date + datetime.timedelta(days=day)]:
             update_stock_balance(stock_transaction, stock_balance)
-
-        to_save.append(models.StockBalanceHistory(
-            asset_id=stock_balance.asset_id,
-            account=stock_balance.account,
-            date=rebuild_date + datetime.timedelta(days=day),
-            quantity=stock_balance.quantity,
-            price=stock_balance.price,
-            result=stock_balance.result,
-        ))
+        if stock_balance.quantity != 0:
+            is_any_history = True
+        if is_any_history:
+            to_save.append(models.StockBalanceHistory(
+                asset_id=stock_balance.asset_id,
+                account=stock_balance.account,
+                date=rebuild_date + datetime.timedelta(days=day),
+                quantity=stock_balance.quantity,
+                price=stock_balance.price,
+                result=stock_balance.result,
+            ))
     models.StockBalanceHistory.objects.bulk_create(to_save)
 
     today_transactions = models.StockTransaction.objects.filter(date__date=today).order_by('date')
