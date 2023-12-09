@@ -149,18 +149,19 @@ def fetch_missing_price_changes(stock_balance, stock, begin):
     price_changes = eod_service.get_price_changes(stock, begin, end)
 
     first_event_date = begin
+    to_save = []
     for price_change in price_changes:
         date = datetime.datetime.strptime(price_change['date'], '%Y-%m-%d') + datetime.timedelta(days=1)
-        stock_transaction = models.StockTransaction.objects.create(
+        to_save.append(models.StockTransaction(
             asset_id=stock_balance.asset_id,
             account=stock_balance.account,
             transaction_type='price',
             quantity=0,
             price=price_change['adjusted_close'],
             date=date,
-        )
-        stock_transaction.save()
+        ))
         first_event_date = min(first_event_date, date.date())
+    models.StockTransaction.objects.bulk_create(to_save)
     stock_balance.first_event_date = first_event_date
     rebuild_stock_balance(stock_balance, first_event_date)
 

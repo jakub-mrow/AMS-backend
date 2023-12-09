@@ -72,7 +72,7 @@ def add_transaction_from_stock_for_import(stock_transaction, stock, account):
         commission = stock_transaction.commission if stock_transaction.commission else 0
         amount = stock_transaction.quantity * stock_transaction.price * exchange_rate + commission
 
-    account_transaction = models.Transaction.objects.create(
+    return models.Transaction(
         account_id=stock_transaction.account_id,
         type=stock_transaction.transaction_type,
         amount=amount,
@@ -81,7 +81,6 @@ def add_transaction_from_stock_for_import(stock_transaction, stock, account):
         account=account,
         correlation_id=stock_transaction.id
     )
-    account_transaction.save()
 
 
 def modify_transaction_from_stock(stock_transaction, stock, account):

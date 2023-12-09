@@ -307,6 +307,7 @@ def import_csv(file, account):
         current = transactions[transactions['ticker_exchange'] == ticker]
         stock_transactions_list.append(current)
 
+    account_rebuild_date = None
     for stock_transactions in stock_transactions_list:
         try:
             exchange = models.Exchange.objects.get(code=stock_transactions.iloc[0]["exchange"])
@@ -331,6 +332,8 @@ def import_csv(file, account):
             )
         try:
             with transaction.atomic():
+                stock_transactions_to_save = []
+                account_transactions_to_save = []
                 for index, stock_transaction in stock_transactions.iterrows():
                     pay_currency = stock_transaction["pay_currency"] if not pd.isna(
                         stock_transaction["pay_currency"]) else None
@@ -338,7 +341,7 @@ def import_csv(file, account):
                         stock_transaction["exchange_rate"]) else None
                     commission = stock_transaction["commission"] if not pd.isna(
                         stock_transaction["commission"]) else None
-                    db_stock_transaction = models.StockTransaction.objects.create(
+                    db_stock_transaction = models.StockTransaction(
                         account=account,
                         asset_id=stock.id,
                         quantity=stock_transaction["quantity"],
@@ -349,8 +352,12 @@ def import_csv(file, account):
                         exchange_rate=exchange_rate,
                         commission=commission
                     )
-                    db_stock_transaction.save()
-                    account_balance_service.add_transaction_from_stock_for_import(db_stock_transaction, stock, account)
+                    stock_transactions_to_save.append(db_stock_transaction)
+                    account_transactions_to_save.append(
+                        account_balance_service.add_transaction_from_stock_for_import(db_stock_transaction, stock, account)
+                    )
+                models.StockTransaction.objects.bulk_create(stock_transactions_to_save)
+                models.Transaction.objects.bulk_create(account_transactions_to_save)
                 stock_balance, created = models.StockBalance.objects.get_or_create(
                     asset_id=stock.id,
                     account=account,
@@ -362,6 +369,7 @@ def import_csv(file, account):
                     }
                 )
                 first_date = stock_transactions["date"].min()
+                account_rebuild_date = min(account_rebuild_date, first_date.date()) if account_rebuild_date else first_date.date()
                 if created:
                     stock_balance_service.fetch_missing_price_changes(stock_balance, stock, first_date.date())
                 else:
@@ -377,7 +385,7 @@ def import_csv(file, account):
                         'amount': 0,
                     }
                 )
-                account_balance_service.rebuild_account_balance(account, first_date.date())
         except NotEnoughStockException:
             pass
+    account_balance_service.rebuild_account_balance(account, account_rebuild_date)
     tasks.calculate_account_xirr_task.delay(account.id)
