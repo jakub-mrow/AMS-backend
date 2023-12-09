@@ -1,5 +1,6 @@
 import datetime
 import decimal
+from collections import defaultdict
 
 import pytz
 from django.db import transaction
@@ -182,28 +183,34 @@ def rebuild_stock_balance(stock_balance, rebuild_date):
         stock_balance.price = 0
         stock_balance.result = 0
 
-    transactions_on_date = models.StockTransaction.objects.filter(asset_id=stock_balance.asset_id,
-                                                                  account=stock_balance.account,
-                                                                  date__gte=rebuild_date).order_by('date')
     today = datetime.datetime.now().date()
     yesterday = today - datetime.timedelta(days=1)
-    for day in range((yesterday - rebuild_date).days + 1):
-        for transaction in transactions_on_date.filter(date__date=rebuild_date + datetime.timedelta(days=day)):
-            update_stock_balance(transaction, stock_balance)
+    stock_transactions = models.StockTransaction.objects.filter(asset_id=stock_balance.asset_id,
+                                                                  account=stock_balance.account,
+                                                                  date__range=[rebuild_date, yesterday]).order_by('date')
+    stock_transactions_by_date = defaultdict(list)
+    for stock_transaction in stock_transactions:
+        stock_transactions_by_date[stock_transaction.date.date()].append(stock_transaction)
 
-        models.StockBalanceHistory.objects.create(
+    to_save = []
+    for day in range((yesterday - rebuild_date).days + 1):
+        for stock_transaction in stock_transactions_by_date[rebuild_date + datetime.timedelta(days=day)]:
+            update_stock_balance(stock_transaction, stock_balance)
+
+        to_save.append(models.StockBalanceHistory(
             asset_id=stock_balance.asset_id,
             account=stock_balance.account,
             date=rebuild_date + datetime.timedelta(days=day),
             quantity=stock_balance.quantity,
             price=stock_balance.price,
             result=stock_balance.result,
-        )
+        ))
+    models.StockBalanceHistory.objects.bulk_create(to_save)
 
-    today_transactions = transactions_on_date.filter(date__date=today).order_by('date')
+    today_transactions = models.StockTransaction.objects.filter(date__date=today).order_by('date')
 
-    for transaction in today_transactions:
-        update_stock_balance(transaction, stock_balance)
+    for stock_transaction in today_transactions:
+        update_stock_balance(stock_transaction, stock_balance)
     stock_balance.last_save_date = yesterday
     update_average_price(stock_balance)
     update_current_result(stock_balance)
