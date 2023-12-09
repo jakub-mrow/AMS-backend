@@ -94,6 +94,9 @@ def update_average_price(stock_balance):
 
 
 def update_current_result(stock_balance):
+    if stock_balance.average_price == 0:
+        stock_balance.result = 0
+        return
     stock_balance.result = (stock_balance.price - stock_balance.average_price) / stock_balance.average_price
 
 
