@@ -68,7 +68,7 @@ def update_average_price(stock_balance):
     stock_history = list()
     for transaction in stock_transactions:
         if transaction.transaction_type == 'buy':
-            stock_history.append((transaction.quantity, transaction.price))
+            stock_history.append((transaction.quantity, transaction.price, get_commission_for_average_price(transaction)))
         elif transaction.transaction_type == 'sell':
             remaining_quantity = transaction.quantity
             for i, history in enumerate(stock_history):
@@ -77,20 +77,28 @@ def update_average_price(stock_balance):
 
                 if history[0] >= remaining_quantity:
                     new_quantity = history[0] - remaining_quantity
-                    stock_history[i] = (new_quantity, history[1])
+                    stock_history[i] = (new_quantity, history[1], history[2])
                     break
                 else:
                     remaining_quantity -= history[0]
-                    stock_history[i] = (0, history[1])
+                    stock_history[i] = (0, history[1], history[2])
     stock_history = list([history for history in stock_history if history[0] > 0])
     if len(stock_history) == 0:
         stock_balance.average_price = 0
         return
     average_price = 0
     for history in stock_history:
-        average_price += history[0] * history[1]
+        average_price += history[0] * history[1] + history[2]
     average_price /= stock_balance.quantity
     stock_balance.average_price = average_price
+
+
+def get_commission_for_average_price(stock_transaction):
+    if not stock_transaction.commission:
+        return 0
+    if stock_transaction.exchange_rate:
+        return stock_transaction.commission / stock_transaction.exchange_rate
+    return stock_transaction.commission
 
 
 def update_current_result(stock_balance):
