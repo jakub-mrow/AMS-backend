@@ -173,7 +173,7 @@ def rebuild_account_balance(account, rebuild_date):
 
     models.AccountHistory.objects.bulk_create(histories_to_save)
     models.AccountHistoryBalance.objects.bulk_create(balances_to_save)
-    for transaction in models.Transaction.objects.filter(date__date=current_date).order_by('date'):
+    for transaction in models.Transaction.objects.filter(account_id=account.id, date__date=current_date).order_by('date'):
         update_account_balance(transaction, account, account_balances_by_currency[transaction.currency])
 
     for account_balance in account_balances_by_currency.values():

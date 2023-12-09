@@ -214,7 +214,9 @@ def rebuild_stock_balance(stock_balance, rebuild_date):
             ))
     models.StockBalanceHistory.objects.bulk_create(to_save)
 
-    today_transactions = models.StockTransaction.objects.filter(date__date=today).order_by('date')
+    today_transactions = models.StockTransaction.objects.filter(asset_id=stock_balance.asset_id,
+                                                                account=stock_balance.account,
+                                                                date__date=today).order_by('date')
 
     for stock_transaction in today_transactions:
         update_stock_balance(stock_transaction, stock_balance)
