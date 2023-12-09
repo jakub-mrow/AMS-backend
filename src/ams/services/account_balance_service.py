@@ -1,4 +1,5 @@
 import decimal
+from collections import defaultdict
 from datetime import timedelta, datetime
 
 from django.db import transaction
@@ -60,6 +61,7 @@ def add_transaction_from_stock(stock_transaction, stock, account):
     )
     account_transaction.save()
     add_transaction_to_account_balance(account_transaction, account)
+
 
 def add_transaction_from_stock_for_import(stock_transaction, stock, account):
     currency = stock_transaction.pay_currency if stock_transaction.pay_currency else stock.currency
@@ -144,34 +146,34 @@ def rebuild_account_balance(account, rebuild_date):
                     amount=0
                 )
 
+    models.AccountHistory.objects.filter(account_id=account.id, date__gte=rebuild_date).delete()
+
     current_date = rebuild_date
     yesterday = datetime.now().date() - timedelta(days=1)
 
+    histories_to_save = []
+    balances_to_save = []
+    account_transactions = models.Transaction.objects.filter(account_id=account.id,
+                                                             date__range=[current_date, yesterday]).order_by("date")
+    account_transactions_by_date = defaultdict(list)
+    for account_transaction in account_transactions:
+        account_transactions_by_date[account_transaction.date.date()].append(account_transaction)
+
     while current_date <= yesterday:
-        for transaction in models.Transaction.objects.filter(date__date=current_date,
-                                                             account_id=account.id).order_by('date'):
-            update_account_balance(transaction, account, account_balances_by_currency[transaction.currency])
-
+        for account_transaction in account_transactions_by_date[current_date]:
+            update_account_balance(account_transaction, account,
+                                   account_balances_by_currency[account_transaction.currency])
+        account_history = models.AccountHistory(account_id=account.id, date=current_date)
         for currency in currencies:
-            account_history, success = models.AccountHistory.objects.get_or_create(account_id=account.id,
-                                                                                   date=current_date,
-                                                                                   defaults={
-                                                                                       'account_id': account.id,
-                                                                                       'date': current_date
-                                                                                   })
-            account_history_balance, created = models.AccountHistoryBalance.objects.get_or_create(
-                account_history_id=account_history.id,
-                currency=currency,
-                defaults={
-                    'amount': 0
-                }
-            )
+            balances_to_save.append(models.AccountHistoryBalance(account_history=account_history,
+                                                                 amount=account_balances_by_currency[currency].amount,
+                                                                 currency=currency))
 
-            account_history_balance.amount = account_balances_by_currency[currency].amount
-            account_history_balance.save()
-
+        histories_to_save.append(account_history)
         current_date += timedelta(days=1)
 
+    models.AccountHistory.objects.bulk_create(histories_to_save)
+    models.AccountHistoryBalance.objects.bulk_create(balances_to_save)
     for transaction in models.Transaction.objects.filter(date__date=current_date).order_by('date'):
         update_account_balance(transaction, account, account_balances_by_currency[transaction.currency])
 
