@@ -333,7 +333,6 @@ def import_csv(file, account):
         try:
             with transaction.atomic():
                 stock_transactions_to_save = []
-                account_transactions_to_save = []
                 for index, stock_transaction in stock_transactions.iterrows():
                     pay_currency = stock_transaction["pay_currency"] if not pd.isna(
                         stock_transaction["pay_currency"]) else None
@@ -353,10 +352,12 @@ def import_csv(file, account):
                         commission=commission
                     )
                     stock_transactions_to_save.append(db_stock_transaction)
+                db_stock_transactions = models.StockTransaction.objects.bulk_create(stock_transactions_to_save)
+                account_transactions_to_save = []
+                for db_stock_transaction in db_stock_transactions:
                     account_transactions_to_save.append(
                         account_balance_service.add_transaction_from_stock_for_import(db_stock_transaction, stock, account)
                     )
-                models.StockTransaction.objects.bulk_create(stock_transactions_to_save)
                 models.Transaction.objects.bulk_create(account_transactions_to_save)
                 stock_balance, created = models.StockBalance.objects.get_or_create(
                     asset_id=stock.id,
