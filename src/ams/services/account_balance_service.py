@@ -24,8 +24,7 @@ def add_transaction_to_account_balance(transaction, account):
         update_account_balance(transaction, account, account_balance)
         account_balance.save()
         account.save()
-
-    tasks.calculate_account_xirr_task.delay(account.id)
+        tasks.calculate_account_xirr_task.delay(account.id)
 
 
 def update_account_balance(transaction, account, account_balance):
@@ -180,6 +179,7 @@ def rebuild_account_balance(account, rebuild_date):
         account_balance.save()
     account.last_save_date = yesterday
     account.save()
+    tasks.calculate_account_xirr_task.delay(account.id)
 
 
 def modify_transaction(account_transaction, old_transaction_date):
