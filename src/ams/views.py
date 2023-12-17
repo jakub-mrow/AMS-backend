@@ -431,6 +431,7 @@ class StockDetailsAPIView(APIView):
 
         try:
             stock_details = eod_service.get_stock_details(stock, exchange, period, from_date, to_date)
+            stock_details['exchange_info'] = serializers.ExchangeSerializer(stock_details['exchange_info']).data
             return Response(data=stock_details, status=status.HTTP_200_OK)
         except Exception as e:
             logger.exception(e)
