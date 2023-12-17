@@ -2,7 +2,7 @@ import logging
 from datetime import date
 
 from django.db.models.functions import TruncDate
-from pyxirr import xirr
+from pyxirr import xirr, InvalidPaymentsError
 
 from ams.models import Transaction, StockBalance, AccountPreferences, Stock, AccountBalance
 from ams.services.eod_service import get_current_currency_prices, get_current_currency_price
@@ -25,9 +25,9 @@ def calculate_account_xirr(account):
 
     stock_balances = StockBalance.objects.filter(account_id=account.id)
     stock_currencies = []
+    stocks = Stock.objects.filter(id__in=stock_balances.values_list('asset_id', flat=True))
 
-    for stock_balance in stock_balances:
-        stock = Stock.objects.get(id=stock_balance.asset_id)
+    for stock in stocks:
         if stock.currency == base_currency:
             continue
         currency_pair = f'{stock.currency}{base_currency}'
@@ -64,8 +64,9 @@ def calculate_account_xirr(account):
         today = date.today()
 
         balance_sum = 0
+        asset_id_to_stock = {stock.id: stock for stock in stocks}
         for stock_balance in stock_balances:
-            stock = Stock.objects.get(id=stock_balance.asset_id)
+            stock = asset_id_to_stock[stock_balance.asset_id]
             currency_pair = f'{stock.currency}{base_currency}'
             currency_difference = currency_pairs[currency_pair]
 
@@ -84,7 +85,10 @@ def calculate_account_xirr(account):
         amounts.append(round(balance_sum, 2))
 
         transactions_tuple = zip(dates, amounts)
-        current_xirr = xirr(transactions_tuple)
-        account.xirr = current_xirr
+        try:
+            current_xirr = xirr(transactions_tuple)
+            account.xirr = current_xirr
+        except InvalidPaymentsError:
+            account.xirr = None
 
         account.save()
