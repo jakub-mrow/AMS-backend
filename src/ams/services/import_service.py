@@ -6,8 +6,8 @@ import pandas as pd
 from django.db import transaction
 from pandas.core.dtypes.common import is_integer_dtype, is_numeric_dtype
 
-from ams import models, tasks
-from ams.services import eod_service, stock_balance_service, account_balance_service
+from ams import models
+from ams.services import eod_service, stock_balance_service, account_balance_service, account_xirr_service
 from ams.services.stock_balance_service import NotEnoughStockException
 
 
@@ -389,4 +389,4 @@ def import_csv(file, account):
         except NotEnoughStockException:
             pass
     account_balance_service.rebuild_account_balance(account, account_rebuild_date)
-    tasks.calculate_account_xirr_task.delay(account.id)
+    account_xirr_service.calculate_account_xirr(account)

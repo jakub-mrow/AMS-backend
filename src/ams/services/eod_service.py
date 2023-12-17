@@ -6,7 +6,7 @@ import pandas as pd
 import requests
 from dateutil.relativedelta import relativedelta
 
-from ams import models, serializers
+from ams import models
 from main.settings import EOD_TOKEN, EOD_API_URL
 
 logger = logging.getLogger(__name__)
@@ -191,11 +191,10 @@ def get_stock_details(stock, exchange, period, from_date, to_date):
     price_changes = price_changes_future.result()
     current_info = current_price_future.result()
     exchange_info = models.Exchange.objects.filter(code=exchange).first()
-    exchange_serializer = serializers.ExchangeSerializer(exchange_info)
     percentage_change = ((current_info['close'] - current_info['previousClose']) / current_info['previousClose']) * 100
     stock_details = {
         'price_changes': price_changes,
-        'exchange_info': exchange_serializer.data,
+        'exchange_info': exchange_info,
         'current_price': current_info['close'],
         'previous_close': current_info['previousClose'],
         'percentage_change_previous_close': round(percentage_change, 2)

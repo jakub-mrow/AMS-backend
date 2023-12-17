@@ -12,11 +12,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ams import models, serializers, tasks
+from ams import models, serializers
 from ams.permissions import IsObjectOwner
 from ams.serializers import ExchangeSerializer
 from ams.services import account_history_service, account_balance_service, \
-    import_service
+    import_service, account_xirr_service
 from ams.services import stock_balance_service, eod_service
 from ams.services.account_balance_service import add_transaction_from_stock, add_transaction_to_account_balance
 from ams.services.import_service import IncorrectFileFormatException, UnknownAssetException
@@ -77,7 +77,7 @@ class AccountViewSet(viewsets.ModelViewSet):
             serializer.save()
 
         if should_recalculate_xirr:
-            tasks.calculate_account_xirr_task.delay(account.id)
+            account_xirr_service.calculate_account_xirr(account)
 
         return Response({"msg": "Account preferences updated"}, status=status.HTTP_200_OK)
 
@@ -431,6 +431,7 @@ class StockDetailsAPIView(APIView):
 
         try:
             stock_details = eod_service.get_stock_details(stock, exchange, period, from_date, to_date)
+            stock_details['exchange_info'] = serializers.ExchangeSerializer(stock_details['exchange_info']).data
             return Response(data=stock_details, status=status.HTTP_200_OK)
         except Exception as e:
             logger.exception(e)
