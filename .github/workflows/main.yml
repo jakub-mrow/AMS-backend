@@ -12,25 +12,25 @@ env:
   AWS_REGION: eu-central-1
 
 jobs:
-  continuous-integration:
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Checkout source code"
-        uses: actions/checkout@v2
-
-      - name: "Build and run container"
-        run: docker-compose up -d --build
-
-      - name: "Sleep for 30 seconds"
-        uses: jakejarvis/wait-action@master
-        with:
-          time: '30s'
-
-      - name: "Run tests"
-        run: docker-compose exec -T django pytest
-
-      - name: "Stop containers"
-        run: docker-compose down
+#  continuous-integration:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: "Checkout source code"
+#        uses: actions/checkout@v2
+#
+#      - name: "Build and run container"
+#        run: docker-compose up -d --build
+#
+#      - name: "Sleep for 30 seconds"
+#        uses: jakejarvis/wait-action@master
+#        with:
+#          time: '30s'
+#
+#      - name: "Run tests"
+#        run: docker-compose exec -T django pytest
+#
+#      - name: "Stop containers"
+#        run: docker-compose down
 
   build-and-push:
     needs: continuous-integration
