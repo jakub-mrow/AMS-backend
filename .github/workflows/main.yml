@@ -51,22 +51,42 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build and push Docker image
+      - name: Build and push django image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ams.registry.apps
+          ECR_REPOSITORY: ams/django
         run: |
-           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-django -f ./docker/django/Dockerfile ./docker/django
-           docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-django
-  
-           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-redis -f ./docker/redis/Dockerfile ./docker/redis
-           docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-redis
-  
-           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-postgres -f ./docker/postgres/Dockerfile ./docker/postgres
-           docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-postgres
-  
-           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-celery-worker -f ./docker/celery/Dockerfile ./docker/celery
-           docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-celery-worker
-          
-           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:ams-celery-beat -f ./docker/celery-beat/Dockerfile ./docker/celery-beat
-           docker push $ECR_REGISTRY/$ECR_REPOSITORY:ams-celery-beat
+           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/django/Dockerfile ./docker/django
+           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Build and push redis image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ams/redis
+        run: |
+           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/redis/Dockerfile ./docker/redis
+           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Build and push postgres image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ams/postgres
+        run: |
+           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/postgres/Dockerfile ./docker/postgres
+           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Build and push celery image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ams/celery
+        run: |
+           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/celery/Dockerfile ./docker/celery
+           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Build and push celery-beat image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ams/celery
+        run: |
+           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/celery-beat/Dockerfile ./docker/celery-beat
+           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
