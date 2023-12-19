@@ -21,8 +21,8 @@ services:
   django:
     restart: unless-stopped
     build:
-      context: ./docker/django
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./docker/django/Dockerfile
     image: ams-django:latest
     volumes:
       - .:/code
@@ -54,8 +54,8 @@ services:
 
   celery:
     build:
-      context: ./docker/celery
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./docker/celery/Dockerfile
     image: ams-celery-worker:latest
     volumes:
       - .:/code
@@ -69,8 +69,8 @@ services:
 
   celery-beat:
     build:
-      context: ./docker/celery-beat
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./docker/celery-beat/Dockerfile
     image: ams-celery-beat:latest
     volumes:
       - .:/code

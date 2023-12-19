@@ -56,7 +56,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ams/django
         run: |
-           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/django/Dockerfile ./docker/django
+           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/django/Dockerfile .
            docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Build and push redis image
@@ -64,7 +64,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ams/redis
         run: |
-           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/redis/Dockerfile ./docker/redis
+           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/redis/Dockerfile .
            docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Build and push postgres image
@@ -72,7 +72,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ams/postgresql
         run: |
-           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/postgres/Dockerfile ./docker/postgres
+           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/postgres/Dockerfile .
            docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Build and push celery image
@@ -80,7 +80,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ams/celery
         run: |
-           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/celery/Dockerfile ./docker/celery
+           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/celery/Dockerfile .
            docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Build and push celery-beat image
@@ -88,5 +88,5 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ams/celery-beat
         run: |
-           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/celery-beat/Dockerfile ./docker/celery-beat
+           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/celery-beat/Dockerfile .
            docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest

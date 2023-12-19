@@ -3,10 +3,10 @@ FROM python:3.11-bullseye
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-COPY requirements.txt .
+COPY ./docker/django/requirements.txt .
 
 # copy django scripts
-COPY scripts/* /usr/local/bin/
+COPY ./docker/django/scripts/* /usr/local/bin/
 
 RUN chmod +x /usr/local/bin/*
 
