@@ -86,7 +86,7 @@ jobs:
       - name: Build and push celery-beat image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ams/celery
+          ECR_REPOSITORY: ams/celery-beat
         run: |
            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/celery-beat/Dockerfile ./docker/celery-beat
            docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
