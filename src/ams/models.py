@@ -27,7 +27,7 @@ class AccountHistoryBalance(models.Model):
     currency = models.CharField(max_length=3)
 
 
-class Transaction(models.Model):
+class AccountTransaction(models.Model):
     DEPOSIT = 'deposit'
     WITHDRAWAL = 'withdrawal'
     BUY = 'buy'
@@ -76,7 +76,7 @@ class Exchange(models.Model):
         return f"{self.name}"
 
 
-class StockTransaction(models.Model):
+class AssetTransaction(models.Model):
     BUY = 'buy'
     SELL = 'sell'
     PRICE = 'price'
@@ -102,7 +102,7 @@ class StockTransaction(models.Model):
         return f"{self.transaction_type} of {self.quantity} for {self.price} for {self.account_id}"
 
 
-class Stock(models.Model):
+class Asset(models.Model):
     STOCK_TYPE_CHOICES = [
         ('STOCK', 'Stock'),
         ('CRYPTO', 'Cryptocurrency'),
@@ -118,7 +118,7 @@ class Stock(models.Model):
         return f"{self.name} on {self.exchange}"
 
 
-class StockBalance(models.Model):
+class AssetBalance(models.Model):
     asset_id = models.IntegerField()
     account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='stock_balance')
     quantity = models.IntegerField()
@@ -133,7 +133,7 @@ class StockBalance(models.Model):
         return f"{self.quantity} of {self.asset_id} for {self.account_id}"
 
 
-class StockBalanceHistory(models.Model):
+class AssetBalanceHistory(models.Model):
     asset_id = models.IntegerField()
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     date = models.DateField()

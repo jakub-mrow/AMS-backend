@@ -43,13 +43,13 @@ def update_account_balance(transaction, account, account_balance):
 def add_transaction_from_stock(stock_transaction, stock, account):
     currency = stock_transaction.pay_currency if stock_transaction.pay_currency else stock.currency
     exchange_rate = stock_transaction.exchange_rate if stock_transaction.exchange_rate else 1
-    if stock_transaction.transaction_type == models.StockTransaction.DIVIDEND:
+    if stock_transaction.transaction_type == models.AssetTransaction.DIVIDEND:
         amount = stock_transaction.price * exchange_rate
     else:
         commission = stock_transaction.commission if stock_transaction.commission else 0
         amount = stock_transaction.quantity * stock_transaction.price * exchange_rate + commission
 
-    account_transaction = models.Transaction.objects.create(
+    account_transaction = models.AccountTransaction.objects.create(
         account_id=stock_transaction.account_id,
         type=stock_transaction.transaction_type,
         amount=amount,
@@ -65,13 +65,13 @@ def add_transaction_from_stock(stock_transaction, stock, account):
 def add_transaction_from_stock_for_import(stock_transaction, stock, account):
     currency = stock_transaction.pay_currency if stock_transaction.pay_currency else stock.currency
     exchange_rate = stock_transaction.exchange_rate if stock_transaction.exchange_rate else 1
-    if stock_transaction.transaction_type == models.StockTransaction.DIVIDEND:
+    if stock_transaction.transaction_type == models.AssetTransaction.DIVIDEND:
         amount = stock_transaction.price * exchange_rate
     else:
         commission = stock_transaction.commission if stock_transaction.commission else 0
         amount = stock_transaction.quantity * stock_transaction.price * exchange_rate + commission
 
-    return models.Transaction(
+    return models.AccountTransaction(
         account_id=stock_transaction.account_id,
         type=stock_transaction.transaction_type,
         amount=amount,
@@ -83,12 +83,12 @@ def add_transaction_from_stock_for_import(stock_transaction, stock, account):
 
 
 def modify_transaction_from_stock(stock_transaction, stock, account):
-    account_transaction = models.Transaction.objects.get(correlation_id=stock_transaction.id)
+    account_transaction = models.AccountTransaction.objects.get(correlation_id=stock_transaction.id)
     old_account_transaction_date = account_transaction.date
 
     currency = stock_transaction.pay_currency if stock_transaction.pay_currency else stock.currency
     exchange_rate = stock_transaction.exchange_rate if stock_transaction.exchange_rate else 1
-    if stock_transaction.transaction_type == models.StockTransaction.DIVIDEND:
+    if stock_transaction.transaction_type == models.AssetTransaction.DIVIDEND:
         amount = stock_transaction.price * exchange_rate
     else:
         commission = stock_transaction.commission if stock_transaction.commission else 0
@@ -113,8 +113,8 @@ def rebuild_account_balance(account, rebuild_date):
     account_balances = models.AccountBalance.objects.filter(account_id=account.id)
     account_balances_by_currency = {account_balance.currency: account_balance for account_balance in account_balances}
     currencies = list(account_balances_by_currency.keys())
-    currencies_from_transactions = models.Transaction.objects.filter(account_id=account.id).values_list('currency',
-                                                                                                        flat=True).distinct()
+    currencies_from_transactions = models.AccountTransaction.objects.filter(account_id=account.id).values_list('currency',
+                                                                                                               flat=True).distinct()
     currencies = list(set(currencies + list(currencies_from_transactions)))
 
     if account_history:
@@ -151,8 +151,8 @@ def rebuild_account_balance(account, rebuild_date):
 
     histories_to_save = []
     balances_to_save = []
-    account_transactions = models.Transaction.objects.filter(account_id=account.id,
-                                                             date__range=[current_date, yesterday]).order_by("date")
+    account_transactions = models.AccountTransaction.objects.filter(account_id=account.id,
+                                                                    date__range=[current_date, yesterday]).order_by("date")
     account_transactions_by_date = defaultdict(list)
     for account_transaction in account_transactions:
         account_transactions_by_date[account_transaction.date.date()].append(account_transaction)
@@ -172,7 +172,7 @@ def rebuild_account_balance(account, rebuild_date):
 
     models.AccountHistory.objects.bulk_create(histories_to_save)
     models.AccountHistoryBalance.objects.bulk_create(balances_to_save)
-    for transaction in models.Transaction.objects.filter(account_id=account.id, date__date=current_date).order_by('date'):
+    for transaction in models.AccountTransaction.objects.filter(account_id=account.id, date__date=current_date).order_by('date'):
         update_account_balance(transaction, account, account_balances_by_currency[transaction.currency])
 
     for account_balance in account_balances_by_currency.values():
@@ -196,8 +196,8 @@ def delete_transaction(account_transaction):
 def get_account_value(account):
     base_currency = account.account_preferences.base_currency
     account_balances = models.AccountBalance.objects.filter(account=account)
-    stock_balances = models.StockBalance.objects.filter(account=account)
-    stocks = models.Stock.objects.filter(id__in=stock_balances.values_list('asset_id', flat=True).distinct())
+    stock_balances = models.AssetBalance.objects.filter(account=account)
+    stocks = models.Asset.objects.filter(id__in=stock_balances.values_list('asset_id', flat=True).distinct())
     asset_id_to_currency = {stock.id: stock.currency for stock in stocks}
 
     currencies = []

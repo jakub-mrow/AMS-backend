@@ -57,7 +57,7 @@ class TransactionCreateSerializer(serializers.ModelSerializer):
     account = serializers.IntegerField(source='account.id', read_only=True)
 
     class Meta:
-        model = models.Transaction
+        model = models.AccountTransaction
         fields = ('id', 'account', 'type', 'amount', 'currency', 'date')
         read_only_fields = ('id', 'account')
 
@@ -72,7 +72,7 @@ class TransactionSerializer(serializers.ModelSerializer):
     account_id = serializers.IntegerField(source='account.id', read_only=True)
 
     class Meta:
-        model = models.Transaction
+        model = models.AccountTransaction
         fields = ('id', 'account_id', 'type', 'amount', 'currency', 'date')
 
 
@@ -84,7 +84,7 @@ class ExchangeSerializer(serializers.ModelSerializer):
 
 class StockSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Stock
+        model = models.Asset
         fields = ('id', 'isin', 'type', 'ticker', 'name', 'exchange', 'currency')
 
 
@@ -96,7 +96,7 @@ class StockTransactionSerializer(serializers.ModelSerializer):
     commission = serializers.DecimalField(max_digits=17, decimal_places=2, required=False, allow_null=True)
 
     class Meta:
-        model = models.StockTransaction
+        model = models.AssetTransaction
         fields = (
             'id', 'asset_id', 'quantity', 'price', 'transaction_type', 'date', 'account_id', 'pay_currency',
             'exchange_rate',
@@ -113,12 +113,12 @@ class StockBalanceDtoSerializer(serializers.ModelSerializer):
     result = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
 
     class Meta:
-        model = models.StockBalance
+        model = models.AssetBalance
         fields = ('asset_id', 'quantity', 'price', 'result')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        stock = models.Stock.objects.get(id=instance.asset_id)
+        stock = models.Asset.objects.get(id=instance.asset_id)
         data['name'] = stock.name
         data['ticker'] = stock.ticker
         data['currency'] = stock.currency
@@ -132,7 +132,7 @@ class StockBalanceHistoryDtoSerializer(serializers.ModelSerializer):
     result = serializers.DecimalField(max_digits=13, decimal_places=2, coerce_to_string=False)
 
     class Meta:
-        model = models.StockBalanceHistory
+        model = models.AssetBalanceHistory
         fields = ('asset_id', 'date', 'quantity', 'price', 'result')
 
 

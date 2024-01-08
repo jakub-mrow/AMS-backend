@@ -116,7 +116,7 @@ class DegiroImportStockTransactionsStrategy(ImportStockTransactionsStrategy):
         return True
 
     def find_stock(self, stock):
-        return models.Stock.objects.filter(isin=stock).prefetch_related('exchange').first()
+        return models.Asset.objects.filter(isin=stock).prefetch_related('exchange').first()
 
 
 class Trading212ImportStockTransactionsStrategy(ImportStockTransactionsStrategy):
@@ -165,7 +165,7 @@ class Trading212ImportStockTransactionsStrategy(ImportStockTransactionsStrategy)
         return True
 
     def find_stock(self, stock):
-        return models.Stock.objects.filter(isin=stock).prefetch_related('exchange').first()
+        return models.Asset.objects.filter(isin=stock).prefetch_related('exchange').first()
 
 
 class ExanteImportStockTransactionsStrategy(ImportStockTransactionsStrategy):
@@ -218,7 +218,7 @@ class ExanteImportStockTransactionsStrategy(ImportStockTransactionsStrategy):
         return True
 
     def find_stock(self, stock):
-        return models.Stock.objects.filter(isin=stock).prefetch_related('exchange').first()
+        return models.Asset.objects.filter(isin=stock).prefetch_related('exchange').first()
 
 
 class DmBosImportStockTransactionsStrategy(ImportStockTransactionsStrategy):
@@ -268,7 +268,7 @@ class DmBosImportStockTransactionsStrategy(ImportStockTransactionsStrategy):
         return True
 
     def find_stock(self, stock):
-        return models.Stock.objects.filter(isin=stock).prefetch_related('exchange').first()
+        return models.Asset.objects.filter(isin=stock).prefetch_related('exchange').first()
 
 
 def get_strategy(broker, file):
@@ -314,15 +314,15 @@ def import_csv(file, account):
         except models.Exchange.DoesNotExist:
             raise Exception('Exchange does not exist.')
         try:
-            stock = models.Stock.objects.get(ticker=stock_transactions.iloc[0]["ticker"],
+            stock = models.Asset.objects.get(ticker=stock_transactions.iloc[0]["ticker"],
                                              exchange=exchange)
-        except models.Stock.DoesNotExist:
+        except models.Asset.DoesNotExist:
             search_result = eod_service.search(
                 stock_transactions.iloc[0]["ticker"] + '.' + stock_transactions.iloc[0]["exchange"])
             if len(search_result) == 0:
                 raise Exception('Stock does not exist.')
             stock_from_api = search_result[0]
-            stock = models.Stock.objects.create(
+            stock = models.Asset.objects.create(
                 isin=stock_from_api['ISIN'],
                 ticker=stock_transactions.iloc[0]["ticker"],
                 name=stock_from_api['Name'],
@@ -340,7 +340,7 @@ def import_csv(file, account):
                         stock_transaction["exchange_rate"]) else None
                     commission = stock_transaction["commission"] if not pd.isna(
                         stock_transaction["commission"]) else None
-                    db_stock_transaction = models.StockTransaction(
+                    db_stock_transaction = models.AssetTransaction(
                         account=account,
                         asset_id=stock.id,
                         quantity=stock_transaction["quantity"],
@@ -352,14 +352,14 @@ def import_csv(file, account):
                         commission=commission
                     )
                     stock_transactions_to_save.append(db_stock_transaction)
-                db_stock_transactions = models.StockTransaction.objects.bulk_create(stock_transactions_to_save)
+                db_stock_transactions = models.AssetTransaction.objects.bulk_create(stock_transactions_to_save)
                 account_transactions_to_save = []
                 for db_stock_transaction in db_stock_transactions:
                     account_transactions_to_save.append(
                         account_balance_service.add_transaction_from_stock_for_import(db_stock_transaction, stock, account)
                     )
-                models.Transaction.objects.bulk_create(account_transactions_to_save)
-                stock_balance, created = models.StockBalance.objects.get_or_create(
+                models.AccountTransaction.objects.bulk_create(account_transactions_to_save)
+                stock_balance, created = models.AssetBalance.objects.get_or_create(
                     asset_id=stock.id,
                     account=account,
                     defaults={

@@ -16,8 +16,8 @@ def get_account_history_dtos(account):
     base_currency = account.account_preferences.base_currency
     history_balances = models.AccountHistoryBalance.objects.filter(account_history__in=histories).select_related(
         'account_history')
-    stock_history_balances = models.StockBalanceHistory.objects.filter(account=account)
-    stocks = models.Stock.objects.filter(id__in=stock_history_balances.values_list('asset_id', flat=True).distinct())
+    stock_history_balances = models.AssetBalanceHistory.objects.filter(account=account)
+    stocks = models.Asset.objects.filter(id__in=stock_history_balances.values_list('asset_id', flat=True).distinct())
     asset_id_to_currency = {stock.id: stock.currency for stock in stocks}
     date_to_history = {history.date: history for history in histories}
     date_to_history_balances = defaultdict(list)

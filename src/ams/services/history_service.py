@@ -29,10 +29,10 @@ def save_stock_balance_history():
     date = datetime.now().date()
     history_date = date - timedelta(days=1)
 
-    stock_balances = models.StockBalance.objects.all()
+    stock_balances = models.AssetBalance.objects.all()
 
     for stock_balance in stock_balances:
-        models.StockBalanceHistory.objects.create(
+        models.AssetBalanceHistory.objects.create(
             asset_id=stock_balance.asset_id,
             account=stock_balance.account,
             date=history_date,

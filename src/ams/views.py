@@ -122,10 +122,10 @@ class TransactionViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        transactions = models.Transaction.objects.filter(account=account).order_by('-date')
+        transactions = models.AccountTransaction.objects.filter(account=account).order_by('-date')
 
         transaction_type = self.request.query_params.get('transaction_type')
-        if transaction_type in [models.Transaction.DEPOSIT, models.Transaction.WITHDRAWAL]:
+        if transaction_type in [models.AccountTransaction.DEPOSIT, models.AccountTransaction.WITHDRAWAL]:
             transactions = transactions.filter(transaction_type=transaction_type)
         serializer = serializers.TransactionSerializer(transactions, many=True)
 
@@ -137,7 +137,7 @@ class TransactionViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        account_transaction = get_object_or_404(models.Transaction, pk=pk, account=account)
+        account_transaction = get_object_or_404(models.AccountTransaction, pk=pk, account=account)
         old_account_transaction_date = account_transaction.date
 
         serializer = serializers.TransactionSerializer(account_transaction, data=request.data)
@@ -157,7 +157,7 @@ class TransactionViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        account_transaction = get_object_or_404(models.Transaction, pk=pk, account=account)
+        account_transaction = get_object_or_404(models.AccountTransaction, pk=pk, account=account)
         account_balance_service.delete_transaction(account_transaction)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -197,8 +197,8 @@ class StockViewSet(viewsets.ViewSet):
 
     def list(self, request, exchange_id=None):
         try:
-            stocks = models.Stock.objects.filter(exchange=exchange_id)
-        except models.Stock.DoesNotExist:
+            stocks = models.Asset.objects.filter(exchange=exchange_id)
+        except models.Asset.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
         serializer = serializers.StockSerializer(stocks, many=True)
@@ -219,8 +219,8 @@ class StockTransactionViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         try:
-            stock = models.Stock.objects.get(pk=serializer.validated_data['asset_id'])
-        except models.Stock.DoesNotExist:
+            stock = models.Asset.objects.get(pk=serializer.validated_data['asset_id'])
+        except models.Asset.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
         try:
@@ -243,12 +243,12 @@ class StockTransactionViewSet(viewsets.ViewSet):
 
         asset_id = self.request.query_params.get('id')
         if asset_id:
-            stock_transactions = models.StockTransaction.objects.filter(account=account, asset_id=asset_id).order_by('-date')
+            stock_transactions = models.AssetTransaction.objects.filter(account=account, asset_id=asset_id).order_by('-date')
         else:
-            stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+            stock_transactions = models.AssetTransaction.objects.filter(account=account).order_by('-date')
         stock_transactions = stock_transactions.filter(
-            transaction_type__in=[models.StockTransaction.BUY, models.StockTransaction.SELL,
-                                  models.StockTransaction.DIVIDEND])
+            transaction_type__in=[models.AssetTransaction.BUY, models.AssetTransaction.SELL,
+                                  models.AssetTransaction.DIVIDEND])
 
         serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
 
@@ -260,7 +260,7 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        stock_transaction = get_object_or_404(models.StockTransaction, pk=pk, account=account)
+        stock_transaction = get_object_or_404(models.AssetTransaction, pk=pk, account=account)
         stock_balance_service.delete_stock_transaction(stock_transaction)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -271,7 +271,7 @@ class StockTransactionViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        stock_transaction = get_object_or_404(models.StockTransaction, pk=pk, account=account)
+        stock_transaction = get_object_or_404(models.AssetTransaction, pk=pk, account=account)
         old_stock_transaction_date = stock_transaction.date
 
         serializer = serializers.StockTransactionSerializer(stock_transaction, data=request.data)
@@ -307,7 +307,7 @@ class StockBalanceViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        stock_transactions = models.StockTransaction.objects.filter(account=account).order_by('-date')
+        stock_transactions = models.AssetTransaction.objects.filter(account=account).order_by('-date')
 
         serializer = serializers.StockTransactionSerializer(stock_transactions, many=True)
 
@@ -320,7 +320,7 @@ class StockBalanceViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        stock_balance = models.StockBalance.objects.filter(asset_id=pk, account=account).first()
+        stock_balance = models.AssetBalance.objects.filter(asset_id=pk, account=account).first()
         serializer = serializers.StockBalanceDtoSerializer(stock_balance, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -331,7 +331,7 @@ class StockBalanceViewSet(viewsets.ViewSet):
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
 
-        stock_balances = models.StockBalance.objects.filter(account=account)
+        stock_balances = models.AssetBalance.objects.filter(account=account)
         serializer = serializers.StockBalanceDtoSerializer(stock_balances, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -346,17 +346,17 @@ class StockBalanceViewSet(viewsets.ViewSet):
         to_date = request.query_params.get('to')
 
         if from_date and to_date:
-            stock_balance_histories = models.StockBalanceHistory.objects.filter(asset_id=pk, account=account,
+            stock_balance_histories = models.AssetBalanceHistory.objects.filter(asset_id=pk, account=account,
                                                                                 date__gte=from_date,
                                                                                 date__lte=to_date).order_by('date')
         elif from_date:
-            stock_balance_histories = models.StockBalanceHistory.objects.filter(asset_id=pk, account=account,
+            stock_balance_histories = models.AssetBalanceHistory.objects.filter(asset_id=pk, account=account,
                                                                                 date__gte=from_date).order_by('date')
         elif to_date:
-            stock_balance_histories = models.StockBalanceHistory.objects.filter(asset_id=pk, account=account,
+            stock_balance_histories = models.AssetBalanceHistory.objects.filter(asset_id=pk, account=account,
                                                                                 date__lte=to_date).order_by('date')
         else:
-            stock_balance_histories = models.StockBalanceHistory.objects.filter(asset_id=pk, account=account).order_by(
+            stock_balance_histories = models.AssetBalanceHistory.objects.filter(asset_id=pk, account=account).order_by(
                 'date')
         serializer = serializers.StockBalanceHistoryDtoSerializer(stock_balance_histories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -365,13 +365,13 @@ class StockBalanceViewSet(viewsets.ViewSet):
     def price(self, request, pk, account_id):
         try:
             account = models.Account.objects.get(pk=account_id, user=request.user)
-            stock = models.Stock.objects.get(pk=pk)
+            stock = models.Asset.objects.get(pk=pk)
         except models.Account.DoesNotExist:
             return Response({"error": "Account not found."}, status=404)
-        except models.Stock.DoesNotExist:
+        except models.Asset.DoesNotExist:
             return Response({"error": "Stock not found."}, status=404)
 
-        stock_balance = models.StockBalance.objects.filter(asset_id=pk, account=account).first()
+        stock_balance = models.AssetBalance.objects.filter(asset_id=pk, account=account).first()
         try:
             price, currency = stock_balance_service.get_stock_price_in_base_currency(stock_balance, stock)
             return Response({"price": price, "currency": currency}, status=status.HTTP_200_OK)

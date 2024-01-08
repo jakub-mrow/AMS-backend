@@ -4,7 +4,7 @@ from datetime import date
 from django.db.models.functions import TruncDate
 from pyxirr import xirr, InvalidPaymentsError
 
-from ams.models import Transaction, StockBalance, AccountPreferences, Stock, AccountBalance
+from ams.models import AccountTransaction, AssetBalance, AccountPreferences, Asset, AccountBalance
 from ams.services.eod_service import get_current_currency_prices, get_current_currency_price
 
 
@@ -16,16 +16,16 @@ def calculate_account_xirr(account):
         # Probably won't be needed when we have a default preferences object for account
         base_currency = "PLN"
 
-    transactions = Transaction.objects.filter(
+    transactions = AccountTransaction.objects.filter(
         account_id=account.id,
-        type__in=[Transaction.DEPOSIT, Transaction.WITHDRAWAL]
+        type__in=[AccountTransaction.DEPOSIT, AccountTransaction.WITHDRAWAL]
     ).annotate(transaction_date=TruncDate('date'))
     transaction_currencies = [f'{currency}{base_currency}' for currency in
                               transactions.values_list('currency', flat=True).distinct() if currency != base_currency]
 
-    stock_balances = StockBalance.objects.filter(account_id=account.id)
+    stock_balances = AssetBalance.objects.filter(account_id=account.id)
     stock_currencies = []
-    stocks = Stock.objects.filter(id__in=stock_balances.values_list('asset_id', flat=True))
+    stocks = Asset.objects.filter(id__in=stock_balances.values_list('asset_id', flat=True))
 
     for stock in stocks:
         if stock.currency == base_currency:
@@ -54,10 +54,10 @@ def calculate_account_xirr(account):
 
             dates.append(transaction.transaction_date)
 
-            if transaction.type == Transaction.DEPOSIT:
+            if transaction.type == AccountTransaction.DEPOSIT:
                 transaction_amount = float(-transaction.amount) * currency_difference
                 amounts.append(transaction_amount)
-            elif transaction.type == Transaction.WITHDRAWAL:
+            elif transaction.type == AccountTransaction.WITHDRAWAL:
                 transaction_amount = float(transaction.amount) * currency_difference
                 amounts.append(transaction_amount)
 
