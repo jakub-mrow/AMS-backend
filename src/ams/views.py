@@ -70,7 +70,6 @@ class AccountViewSet(viewsets.ModelViewSet):
             if account_preferences.base_currency != serializer.validated_data.get('base_currency'):
                 should_recalculate_xirr = True
             account_preferences.base_currency = serializer.validated_data.get('base_currency')
-            account_preferences.tax_currency = serializer.validated_data.get('tax_currency')
             account_preferences.save()
         except models.AccountPreferences.DoesNotExist:
             should_recalculate_xirr = True

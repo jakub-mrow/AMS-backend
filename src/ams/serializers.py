@@ -28,7 +28,7 @@ class AccountPreferencesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.AccountPreferences
-        fields = ('account_id', 'base_currency', 'tax_currency')
+        fields = ('account_id', 'base_currency')
 
     def create(self, validated_data):
         account_id = self.context.get('account_id')
