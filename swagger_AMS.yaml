@@ -305,9 +305,6 @@ paths:
                 base_currency:
                   type: string
                   example: EUR
-                tax_currency:
-                  type: string
-                  example: PLN
 
       responses:
         '200':
@@ -351,9 +348,6 @@ paths:
                   base_currency:
                     type: string
                     example: EUR
-                  tax_currency:
-                    type: string
-                    example: PLN
   #Transactions
 
   /api/accounts/{account_id}/transactions:

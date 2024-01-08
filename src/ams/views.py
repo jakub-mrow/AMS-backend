@@ -37,7 +37,6 @@ class AccountViewSet(viewsets.ModelViewSet):
         models.AccountPreferences.objects.create(
             account=account,
             base_currency='PLN',
-            tax_currency='PLN',
         )
         logging.info("Account created")
         return Response({"msg": "Account created"}, status=status.HTTP_201_CREATED)
